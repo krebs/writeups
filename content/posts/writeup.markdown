@@ -1,11 +1,16 @@
-### Crackme Fast
+title: Crackme Fast
+date: 2014-07-18
+author: makefu
+tags: crackme, pwnium2014
+
 * Solved by: ttb,exco,makefu
 * Writeup Author: makefu
-### Introduction
+
+## Introduction
 We got an url, and are being told to return the password of the crackme in 3
 seconds to http://41.231.53.44:9393/check.php?p=<Password>.
 
-### Analyse what we've got
+## Analyse what we've got
 at first, look what we receive:
 
     $curl http://41.231.53.44:9393/ | strings
@@ -37,7 +42,7 @@ We skip the header:
     $ file out.exe
     > out.exe: PE32 executable (console) Intel 80386, for MS Windows
 
-### Reverse Engineering
+## Reverse Engineering
 
 Because we have no idea what it does we execute the shitz.
 
@@ -48,12 +53,18 @@ Because we have no idea what it does we execute the shitz.
 
 Let's throw it in IDA Pro, even though none of us had ever used IDA we looked
 like drunken monkeys trying to operate a flux capacitor ...
-![Ida Search](./ida_find.png)
+
+![Ida Search](data/crackme_fast/ida_find.png)
+
 Simply searching for the string 'Sorry' prompted for what we were looking for,
 the key compare function.
-![Key Algorithm](./error_msg.png)
+
+![Key Algorithm](data/crackme_fast/error_msg.png)
+
 Scrolling up a bit there was the key compare algorithm.
-![Key Algorithm](./key_algo.png)
+
+![Key Algorithm](data/crackme_fast/key_algo.png)
+
 The algo looks like this:
 1. get user input
 2. get stored password location
@@ -61,9 +72,12 @@ The algo looks like this:
 3. if all character matched, goto success, else, goto fail
 
 The password storage location is loaded at:
-![Key Storage](./key_storage.png)
+
+![Key Storage](data/crackme_fast/key_storage.png)
+
 The comparsion of the builtin key against the given keys is this snippet:
-![Key comparsion](./key_compare.png)
+
+![Key comparsion](data/crackme_fast/key_compare.png)
 
 var\_14 is the index which character is currently being compared (it is
 incremented in the loop). 
@@ -95,7 +109,7 @@ So we tried out the algo in python:
 After testing the resulting password by hand we were ready to automate the
 process!
 
-### Automating
+## Automating
 I tried to put the whole parsing in a long shell pipe which seemed to work but
 actually was too slow?! So i built a very small python script which held the
 http connection open an just pumped the result right back.
@@ -118,7 +132,7 @@ This is our embarrassingly small solution to retrieve the flag:
     print(i.content)
 
 
-### Lessons learned
+## Lessons learned
 Just use python in first place, shell is not the right tool to solve reverse engineering tasks. Also, get some more exercise with your tools of trade.
 
-[Link to the file retrieved from the server](./out)
+[Link to the file retrieved from the server](data/crackme_fast/out)
