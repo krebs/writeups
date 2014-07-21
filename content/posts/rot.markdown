@@ -3,9 +3,9 @@ date: 2014-07-21
 authors: makefu, momorientes
 tags: crackme, pwnium2014, captcha
 
- * Solved by: momorientes,exco,ttb,makefu
- * Author First Part: momorientes
- * Author Second Part: makefu
+ * **Solved by**: momorientes,exco,ttb,makefu
+ * **Author First Part**: momorientes
+ * **Author Second Part**: makefu
 
 ## Introduction
 We got a raw-socket ip and port and when connecting to it we got a big ASCII
