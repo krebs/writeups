@@ -16,7 +16,6 @@ The == at the end of the Text hinted towards base64 encoding.
 
 Momo needs to write shitz here about decoding, image stitching and so on
 
-
 ![Retrieved image](data/rot/foo.png)
 
 ## Part 2: Automated Text Recognition
@@ -24,7 +23,7 @@ As expected, manually cracking the captcha is close to impossible, humans are
 pretty bad at cracking captchas quickly. Therefore we needed needed the power
 of OCR to crack the code and send it back to the server.
 
-As pytesser seemed to be the most uncomplicated python library to extract text
+As [PyTesser]( https://pytesser.googlecode.com/ ) seemed to be the most uncomplicated python library to extract text
 from an image we tried to throw it directly against the image
 
     :::python
@@ -101,3 +100,5 @@ When putting everything together, this is our code:
     print(tn.read_all())
 
 After running, the Flag was written to stdout, success!
+
+    Pwnium{b1a371c90da6a1d2deba2f6ebcfe3fc0}
