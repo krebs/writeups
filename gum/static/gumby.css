@@ -5362,7 +5362,7 @@ form fieldset legend {
   color: #fff;
 }
 .badge a, .label a {
-  color: #777;
+  color: #fff;
 }
 .badge.primary, .label.primary {
   background: #3085d6;

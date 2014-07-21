@@ -8,7 +8,7 @@ SITEURL = 'http://krebsco.de'
 #SITESUBTITLE = 'A collection of pseudocode snippets'
 
 TIMEZONE = 'Europe/Berlin'
-THEME = './pelican-themes/gum/'
+THEME = './gum/'
 DEFAULT_LANG = 'en'
 #DEFAULT_CATEGORY = 'misc'
 # Feed generation is usually not desired when developing
