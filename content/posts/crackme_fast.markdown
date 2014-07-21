@@ -3,12 +3,12 @@ date: 2014-07-18
 author: makefu
 tags: crackme, pwnium2014
 
-* Solved by: ttb,exco,makefu
-* Writeup Author: makefu
+* **Solved by**: ttb,exco,makefu
+* **Writeup Author**: makefu
 
 ## Introduction
 We got an url, and are being told to return the password of the crackme in 3
-seconds to http://41.231.53.44:9393/check.php?p=<Password>.
+seconds to http://41.231.53.44:9393/check.php?p=**Password**.
 
 ## Analyse what we've got
 at first, look what we receive:
