@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <title>Crackme Fast</title>
+        <meta charset="utf-8" />
+        <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
+
+
+        <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+        <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="./theme/gumby.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/style.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/pygment.css" />
+
+        <script src="./theme/js/libs/modernizr-2.6.2.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body id="index" class="home">
+
+
+    <div class="container">
+
+        <div class="row">
+
+          <header id="banner" class="body">
+                  <h1><a href=".">Krebs CTF Writeups <strong></strong></a></h1>
+          </header><!-- /#banner -->
+
+            <div id="navigation" class="navbar row">
+              <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
+             
+              <ul class="columns">
+                <li><a href=".">Home</a></li>
+
+                <li><a href="/atom.xml">RSS</a></li>
+                <li><a href="./pages/contact.html">Contact</a></li>
+
+              </ul>
+            </div>
+
+<section id="content" class="body">
+
+   <div class="row">
+        <div class="eleven columns">
+
+
+            <header>
+              <h2 class="entry-title">
+                <a href="./crackme-fast.html" rel="bookmark"
+                   title="Permalink to Crackme Fast">Crackme Fast</a></h2>
+           
+            </header>
+            <footer class="post-info">
+              <abbr class="published" title="2014-07-18T00:00:00">
+                Fri 18 July 2014
+              </abbr>
+              <address class="vcard author">
+                By <a class="url fn" href="./author/makefu.html">makefu</a>
+              </address>
+            </footer><!-- /.post-info -->
+            <div class="entry-content">
+              <ul>
+<li>Solved by: ttb,exco,makefu</li>
+<li>Writeup Author: makefu</li>
+</ul>
+<h2>Introduction</h2>
+<p>We got an url, and are being told to return the password of the crackme in 3
+seconds to http://41.231.53.44:9393/check.php?p=<Password>.</p>
+<h2>Analyse what we've got</h2>
+<p>at first, look what we receive:</p>
+<div class="highlight"><pre><span class="err">$</span><span class="n">curl</span> <span class="n">http</span><span class="o">:</span><span class="c1">//41.231.53.44:9393/ | strings</span>
+<span class="o">&gt;</span> <span class="p">...</span>
+<span class="o">&gt;</span> <span class="o">!</span><span class="n">This</span> <span class="n">program</span> <span class="n">cannot</span> <span class="n">be</span> <span class="n">run</span> <span class="n">in</span> <span class="n">DOS</span> <span class="n">mode</span><span class="p">.</span>
+<span class="o">&gt;</span> <span class="p">...</span>
+</pre></div>
+
+
+<p>Well, it seems like a windows binary, but :</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">file</span> <span class="n">out</span><span class="p">.</span><span class="n">exe</span> 
+<span class="nl">out:</span> <span class="n">data</span>
+
+<span class="err">$</span><span class="n">curl</span> <span class="n">http</span><span class="o">:</span><span class="c1">//41.231.53.44:9393/ | hexdump -C</span>
+<span class="o">&gt;</span> <span class="mo">00000000</span>  <span class="mi">4</span><span class="n">c</span> <span class="mi">50</span> <span class="mi">43</span> <span class="mi">4</span><span class="n">b</span> <span class="mo">01</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="mi">34</span> <span class="mi">39</span> <span class="mi">62</span> <span class="mi">37</span> <span class="mi">63</span> <span class="mi">37</span> <span class="mi">34</span> <span class="mi">61</span> <span class="o">|</span><span class="n">LPCK</span><span class="p">...</span><span class="mf">.49</span><span class="n">b7c74a</span><span class="o">|</span>
+<span class="o">&gt;</span> <span class="mo">00000010</span>  <span class="mi">66</span> <span class="mi">66</span> <span class="mi">34</span> <span class="mi">62</span> <span class="mi">34</span> <span class="mi">38</span> <span class="mi">65</span> <span class="mi">63</span>  <span class="mi">37</span> <span class="mi">33</span> <span class="mi">65</span> <span class="mi">62</span> <span class="mi">37</span> <span class="mi">30</span> <span class="mi">38</span> <span class="mi">34</span> <span class="o">|</span><span class="n">ff4b48ec73eb7084</span><span class="o">|</span>
+<span class="o">&gt;</span> <span class="mo">00000020</span>  <span class="mi">35</span> <span class="mi">63</span> <span class="mi">39</span> <span class="mi">61</span> <span class="mi">35</span> <span class="mi">38</span> <span class="mi">37</span> <span class="mi">30</span>  <span class="mi">2</span><span class="n">e</span> <span class="mi">65</span> <span class="mi">78</span> <span class="mi">65</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="o">|</span><span class="mi">5</span><span class="n">c9a5870</span><span class="p">.</span><span class="n">exe</span><span class="p">....</span><span class="o">|</span>
+<span class="o">&gt;</span> <span class="mo">00000030</span>  <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="o">|</span><span class="p">................</span><span class="o">|</span>
+<span class="o">&gt;</span> <span class="o">*</span>
+<span class="o">&gt;</span> <span class="mo">00000100</span>  <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">6</span><span class="n">c</span> <span class="mo">00</span> <span class="mo">00</span> <span class="o">|</span><span class="p">.............</span><span class="n">l</span><span class="p">..</span><span class="o">|</span>
+<span class="o">&gt;</span> <span class="mo">00000110</span>  <span class="mi">4</span><span class="n">d</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">90</span> <span class="mo">00</span> <span class="mo">03</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="mo">04</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">ff</span> <span class="n">ff</span> <span class="mo">00</span> <span class="mo">00</span> <span class="o">|</span><span class="n">MZ</span><span class="p">..............</span><span class="o">|</span>
+</pre></div>
+
+
+<p>So we have a packed file beginning with LPCK and the executable name. Down at
+110 begins the Windows PE , Delimiter is "MZ".</p>
+<p>We skip the header:</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">curl</span> <span class="n">http</span><span class="o">:</span><span class="c1">//41.231.53.44:9393/ | dd skip=34 bs=8  &gt; out.exe</span>
+
+<span class="err">$</span> <span class="n">file</span> <span class="n">out</span><span class="p">.</span><span class="n">exe</span>
+<span class="o">&gt;</span> <span class="n">out</span><span class="p">.</span><span class="n">exe</span><span class="o">:</span> <span class="n">PE32</span> <span class="n">executable</span> <span class="p">(</span><span class="n">console</span><span class="p">)</span> <span class="n">Intel</span> <span class="mi">80386</span><span class="p">,</span> <span class="k">for</span> <span class="n">MS</span> <span class="n">Windows</span>
+</pre></div>
+
+
+<h2>Reverse Engineering</h2>
+<p>Because we have no idea what it does we execute the shitz.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">wine</span> <span class="n">out</span><span class="p">.</span><span class="n">exe</span>
+<span class="o">&gt;</span> <span class="n">Password</span> <span class="o">:</span>
+<span class="o">&gt;</span> <span class="n">balls</span>
+<span class="o">&gt;</span> <span class="n">Sorry</span> <span class="o">!</span> <span class="n">Incorrect</span> <span class="n">pass</span>
+</pre></div>
+
+
+<p>Let's throw it in IDA Pro, even though none of us had ever used IDA we looked
+like drunken monkeys trying to operate a flux capacitor ...</p>
+<p><img alt="Ida Search" src="data/crackme_fast/ida_find.png" /></p>
+<p>Simply searching for the string 'Sorry' prompted for what we were looking for,
+the key compare function.</p>
+<p><img alt="Key Algorithm" src="data/crackme_fast/error_msg.png" /></p>
+<p>Scrolling up a bit there was the key compare algorithm.</p>
+<p><img alt="Key Algorithm" src="data/crackme_fast/key_algo.png" /></p>
+<p>The algo looks like this:
+1. get user input
+2. get stored password location
+2. for each character, do something (no direct compare) with the stored password
+3. if all character matched, goto success, else, goto fail</p>
+<p>The password storage location is loaded at:</p>
+<p><img alt="Key Storage" src="data/crackme_fast/key_storage.png" /></p>
+<p>The comparsion of the builtin key against the given keys is this snippet:</p>
+<p><img alt="Key comparsion" src="data/crackme_fast/key_compare.png" /></p>
+<p>var_14 is the index which character is currently being compared (it is
+incremented in the loop). </p>
+<div class="highlight"><pre><span class="n">mov</span>     <span class="n">eax</span><span class="p">,</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="mi">5</span><span class="n">Ch</span><span class="o">+</span><span class="n">var_14</span><span class="p">]</span> 
+<span class="n">mov</span>     <span class="n">eax</span><span class="p">,</span> <span class="p">[</span><span class="n">esp</span><span class="o">+</span><span class="n">eax</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">5</span><span class="n">Ch</span><span class="o">+</span><span class="n">var_34</span><span class="p">]</span> <span class="err">#</span> <span class="n">get</span> <span class="n">the</span> <span class="n">builtin</span> <span class="kt">char</span> <span class="n">at</span> <span class="n">the</span> <span class="n">position</span>
+                                    <span class="err">#</span> <span class="n">i</span><span class="o">*</span><span class="mi">4</span>
+<span class="n">mov</span>     <span class="n">ecx</span><span class="p">,</span> <span class="n">eax</span>
+<span class="n">xor</span>     <span class="n">ecx</span><span class="p">,</span> <span class="mi">1</span>                      <span class="err">#</span> <span class="n">xor</span> <span class="n">the</span> <span class="n">character</span> <span class="n">with</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>So we tried out the algo in python:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">arr</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="s">&quot;out&quot;</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">).</span><span class="n">read</span><span class="p">()[</span><span class="mi">4880</span><span class="o">:</span><span class="mi">4912</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">arr</span>
+<span class="n">b</span><span class="err">&#39;</span><span class="mi">3</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00X</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00J</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00Y</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00m</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00A</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00d</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00A</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">\</span><span class="n">x00</span><span class="err">&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">pwd</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">c</span> <span class="n">in</span> <span class="n">arr</span><span class="o">:</span>
+<span class="p">...</span>     <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">pwd</span><span class="o">+=</span><span class="p">(</span><span class="n">chr</span><span class="p">(</span><span class="n">c</span><span class="o">^</span><span class="mi">1</span><span class="p">))</span>
+<span class="p">...</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">pwd</span>
+<span class="err">&#39;</span><span class="mi">2</span><span class="n">YKXl</span><span class="err">@</span><span class="n">e</span><span class="err">@&#39;</span>
+
+<span class="err">$</span> <span class="n">wine</span> <span class="n">out</span><span class="p">.</span><span class="n">exe</span>
+<span class="n">Password</span> <span class="o">:</span>
+<span class="mi">2</span><span class="n">YKXl</span><span class="err">@</span><span class="n">e</span><span class="err">@</span>
+<span class="n">Good</span> <span class="n">Boy</span> <span class="o">!</span> <span class="n">Send</span> <span class="n">That</span> <span class="n">pass</span> <span class="n">to</span> <span class="n">server</span> <span class="n">to</span> <span class="n">get</span> <span class="n">the</span> <span class="n">Flag</span><span class="o">%</span>
+</pre></div>
+
+
+<p>After testing the resulting password by hand we were ready to automate the
+process!</p>
+<h2>Automating</h2>
+<p>I tried to put the whole parsing in a long shell pipe which seemed to work but
+actually was too slow?! So i built a very small python script which held the
+http connection open an just pumped the result right back.</p>
+<p>This is our embarrassingly small solution to retrieve the flag:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#!/usr/bin/pyhon</span>
+<span class="n">import</span> <span class="n">requests</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">session</span><span class="p">()</span>
+<span class="n">ret</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://41.231.53.44:9393/&quot;</span><span class="p">,</span><span class="n">stream</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+<span class="cp"># avoid loading the whole file</span>
+<span class="n">arr</span><span class="o">=</span><span class="n">ret</span><span class="p">.</span><span class="n">raw</span><span class="p">.</span><span class="n">read</span><span class="p">()[</span><span class="mi">4880</span><span class="o">:</span><span class="mi">4912</span><span class="p">]</span>
+
+<span class="n">pwd</span><span class="o">=</span><span class="s">&quot;&quot;</span>
+<span class="k">for</span> <span class="n">c</span> <span class="n">in</span> <span class="n">arr</span><span class="o">:</span>
+  <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">:</span>
+    <span class="n">pwd</span><span class="o">+=</span><span class="p">(</span><span class="n">chr</span><span class="p">(</span><span class="n">c</span><span class="o">^</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="n">i</span><span class="o">=</span><span class="n">s</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">http</span><span class="o">:</span><span class="c1">//41.231.53.44:9393/check.php?p=%s&#39;%pwd)</span>
+<span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">.</span><span class="n">content</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<h2>Lessons learned</h2>
+<p>Just use python in first place, shell is not the right tool to solve reverse engineering tasks. Also, get some more exercise with your tools of trade.</p>
+<p><a href="data/crackme_fast/out">Link to the file retrieved from the server</a></p>
+            </div><!-- /.entry-content -->
+
+
+        </div><!-- /.eleven.columns -->
+        
+<div class="three columns">
+
+<h4>Pages</h4>
+
+ <ul>
+      <li><a href="/atom.xml">RSS</a></li>
+      <li><a href="./pages/contact.html">Contact</a></li>
+  </ul>
+
+<h4>Categories</h4>
+<ul>
+		<li><a href="./category/posts.html">posts</a></li>
+</ul>
+
+
+<h4>Tags</h4>
+	<ul>
+	    <li class="tag-4"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-4"><a href="./tag/crackme.html">crackme</a></li>
+</ul>
+
+
+<nav class="widget">
+  <h4>Social</h4>
+  <ul>
+    <li><a href="http://twitter.com/krebsbob">@krebsbob</a></li>
+    <li><a href="irc://irc.freenode.net#krebs">irc.freenode.net#krebs</a></li>
+  </ul>
+</nav>
+
+</div> </div><!-- /.row -->
+
+
+</section>
+
+       </div><!-- /.row -->
+    </div><!-- /.container -->
+
+
+       <div class="container.nopad bg">
+
+    
+        <footer id="credits" class="row">
+          <div class="seven columns left-center">
+
+                   <address id="about" class="vcard body">
+                    Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                    which takes great advantage of <a href="http://python.org">Python</a>.
+                    <br />
+                    Based on the <a target="_blank" href="http://gumbyframework.com">Gumby Framework</a>
+                    </address>
+          </div>
+
+
+          <div class="seven columns">
+            <div class="row">
+              <ul class="socbtns">
+
+
+
+
+
+              </ul>
+            </div>
+          </div>
+        </footer>
+
+    </div>
+
+
+  <script src="./theme/js/libs/jquery-1.9.1.min.js"></script>
+  <script src="./theme/js/libs/gumby.min.js"></script>
+  <script src="./theme/js/plugins.js"></script>
+</body>
+</html>
