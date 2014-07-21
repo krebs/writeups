@@ -15,7 +15,7 @@ blob. After cracking the code you have to send it back within 5 seconds.&lt;/p&g
 &lt;p&gt;As expected, manually cracking the captcha is close to impossible, humans are
 pretty bad at cracking captchas quickly. Therefore we needed needed the power
 of OCR to crack the code and send it back to the server.&lt;/p&gt;
-&lt;p&gt;As pytesser seemed to be the most uncomplicated python library to extract text
+&lt;p&gt;As &lt;a href="https://pytesser.googlecode.com/"&gt;PyTesser&lt;/a&gt; seemed to be the most uncomplicated python library to extract text
 from an image we tried to throw it directly against the image&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;PIL&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Image&lt;/span&gt;
 &lt;span class="n"&gt;img&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Image&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;difference.png&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
@@ -129,7 +129,9 @@ This is what we came up with:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
-&lt;p&gt;After running, the Flag was written to stdout, success!&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="captcha"></category></entry><entry><title>Crackme Fast</title><link href="http://krebsco.de/crackme-fast.html" rel="alternate"></link><updated>2014-07-18T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-18:crackme-fast.html</id><summary type="html">&lt;ul&gt;
+&lt;p&gt;After running, the Flag was written to stdout, success!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;Pwnium&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;b1a371c90da6a1d2deba2f6ebcfe3fc0&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="captcha"></category></entry><entry><title>Crackme Fast</title><link href="http://krebsco.de/crackme-fast.html" rel="alternate"></link><updated>2014-07-18T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-18:crackme-fast.html</id><summary type="html">&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: ttb,exco,makefu&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Writeup Author&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
