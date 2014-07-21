@@ -13,17 +13,19 @@ seconds to http://41.231.53.44:9393/check.php?p=<Password>.
 ## Analyse what we've got
 at first, look what we receive:
 
-    $curl http://41.231.53.44:9393/ | strings
+    :::bash
+    $ curl http://41.231.53.44:9393/ | strings
     > ...
     > !This program cannot be run in DOS mode.
     > ...
 
 Well, it seems like a windows binary, but :
 
+    :::bash
     $ file out.exe 
     out: data
 
-    $curl http://41.231.53.44:9393/ | hexdump -C
+    $ curl http://41.231.53.44:9393/ | hexdump -C
     > 00000000  4c 50 43 4b 01 00 00 00  34 39 62 37 63 37 34 61 |LPCK....49b7c74a|
     > 00000010  66 66 34 62 34 38 65 63  37 33 65 62 37 30 38 34 |ff4b48ec73eb7084|
     > 00000020  35 63 39 61 35 38 37 30  2e 65 78 65 00 00 00 00 |5c9a5870.exe....|
@@ -37,6 +39,7 @@ So we have a packed file beginning with LPCK and the executable name. Down at
     
 We skip the header:
 
+    :::bash
     $ curl http://41.231.53.44:9393/ | dd skip=34 bs=8  > out.exe
 
     $ file out.exe
@@ -46,6 +49,7 @@ We skip the header:
 
 Because we have no idea what it does we execute the shitz.
 
+    :::bash
     $ wine out.exe
     > Password :
     > balls
@@ -82,14 +86,16 @@ The comparsion of the builtin key against the given keys is this snippet:
 var\_14 is the index which character is currently being compared (it is
 incremented in the loop). 
 
+    :::nasm
     mov     eax, [esp+5Ch+var_14] 
-    mov     eax, [esp+eax*4+5Ch+var_34] # get the builtin char at the position
-                                        # i*4
+    mov     eax, [esp+eax*4+5Ch+var_34] ; get the builtin char at the position
+                                        ; i*4
     mov     ecx, eax
-    xor     ecx, 1                      # xor the character with 1
+    xor     ecx, 1                      ; xor the character with 1
 
 So we tried out the algo in python:
 
+    :::python
     >>> arr = open("out","rb").read()[4880:4912]
     >>> arr
     b'3\x00\x00\x00X\x00\x00\x00J\x00\x00\x00Y\x00\x00\x00m\x00\x00\x00A\x00\x00\x00d\x00\x00\x00A\x00\x00\x00'
@@ -101,10 +107,13 @@ So we tried out the algo in python:
     >>> pwd
     '2YKXl@e@'
 
+Go for it!
+
+    :::bash
     $ wine out.exe
     Password :
     2YKXl@e@
-    Good Boy ! Send That pass to server to get the Flag%
+    Good Boy ! Send That pass to server to get the Flag
 
 After testing the resulting password by hand we were ready to automate the
 process!
@@ -116,7 +125,7 @@ http connection open an just pumped the result right back.
 
 This is our embarrassingly small solution to retrieve the flag:
 
-    #!/usr/bin/pyhon
+    #!/usr/bin/python
     import requests
     s = requests.session()
     ret = s.get("http://41.231.53.44:9393/",stream=True)
