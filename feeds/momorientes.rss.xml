@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Krebs CTF Writeups</title><link>http://krebsco.de/</link><description></description><atom:link href="http://krebsco.de/feeds/momorientes.rss.xml" rel="self"></atom:link><lastBuildDate>Mon, 21 Jul 2014 00:00:00 +0200</lastBuildDate><item><title>ROT</title><link>http://krebsco.de/rot.html</link><description>&lt;ul&gt;
-&lt;li&gt;Solved by: momorientes,exco,ttb,makefu&lt;/li&gt;
-&lt;li&gt;Author First Part: momorientes&lt;/li&gt;
-&lt;li&gt;Author Second Part: makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes,exco,ttb,makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author First Part&lt;/strong&gt;: momorientes&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author Second Part&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;We got a raw-socket ip and port and when connecting to it we got a big ASCII

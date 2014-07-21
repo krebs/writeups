@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-07-21T00:00:00+02:00</updated><entry><title>ROT</title><link href="http://krebsco.de/rot.html" rel="alternate"></link><updated>2014-07-21T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-21:rot.html</id><summary type="html">&lt;ul&gt;
-&lt;li&gt;Solved by: momorientes,exco,ttb,makefu&lt;/li&gt;
-&lt;li&gt;Author First Part: momorientes&lt;/li&gt;
-&lt;li&gt;Author Second Part: makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes,exco,ttb,makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author First Part&lt;/strong&gt;: momorientes&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author Second Part&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;We got a raw-socket ip and port and when connecting to it we got a big ASCII
@@ -130,8 +130,8 @@ This is what we came up with:&lt;/p&gt;
 &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
 &lt;p&gt;After running, the Flag was written to stdout, success!&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="captcha"></category></entry><entry><title>Crackme Fast</title><link href="http://krebsco.de/crackme-fast.html" rel="alternate"></link><updated>2014-07-18T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-18:crackme-fast.html</id><summary type="html">&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Solved by:&lt;/strong&gt; ttb,exco,makefu&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Writeup Author:&lt;/strong&gt; makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: ttb,exco,makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Writeup Author&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;We got an url, and are being told to return the password of the crackme in 3
