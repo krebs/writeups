@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-07-21T00:00:00+02:00</updated><entry><title>ROT</title><link href="http://krebsco.de/rot.html" rel="alternate"></link><updated>2014-07-21T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-21:rot.html</id><summary type="html">&lt;ul&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Krebs CTF Writeups</title><link>http://krebsco.de/</link><description></description><atom:link href="http://krebsco.de/feeds/makefu.rss.xml" rel="self"></atom:link><lastBuildDate>Mon, 21 Jul 2014 00:00:00 +0200</lastBuildDate><item><title>ROT</title><link>http://krebsco.de/rot.html</link><description>&lt;ul&gt;
 &lt;li&gt;Solved by: momorientes,exco,ttb,makefu&lt;/li&gt;
 &lt;li&gt;Author First Part: momorientes&lt;/li&gt;
 &lt;li&gt;Author Second Part: makefu&lt;/li&gt;
@@ -129,7 +129,7 @@ This is what we came up with:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 
-&lt;p&gt;After running, the Flag was written to stdout, success!&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="captcha"></category></entry><entry><title>Crackme Fast</title><link href="http://krebsco.de/crackme-fast.html" rel="alternate"></link><updated>2014-07-18T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-18:crackme-fast.html</id><summary type="html">&lt;ul&gt;
+&lt;p&gt;After running, the Flag was written to stdout, success!&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">makefu</dc:creator><pubDate>Mon, 21 Jul 2014 00:00:00 +0200</pubDate><guid>tag:krebsco.de,2014-07-21:rot.html</guid><category>crackme</category><category>pwnium2014</category><category>captcha</category></item><item><title>Crackme Fast</title><link>http://krebsco.de/crackme-fast.html</link><description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Solved by:&lt;/strong&gt; ttb,exco,makefu&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Writeup Author:&lt;/strong&gt; makefu&lt;/li&gt;
 &lt;/ul&gt;
@@ -267,4 +267,4 @@ http connection open an just pumped the result right back.&lt;/p&gt;
 
 &lt;h2&gt;Lessons learned&lt;/h2&gt;
 &lt;p&gt;Just use python in first place, shell is not the right tool to solve reverse engineering tasks. Also, get some more exercise with your tools of trade.&lt;/p&gt;
-&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry></feed>
+&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">makefu</dc:creator><pubDate>Fri, 18 Jul 2014 00:00:00 +0200</pubDate><guid>tag:krebsco.de,2014-07-18:crackme-fast.html</guid><category>crackme</category><category>pwnium2014</category></item></channel></rss>

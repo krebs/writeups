@@ -31,14 +31,14 @@
         <div class="row">
 
           <header id="banner" class="body">
-                  <h1><a href=".">Krebs CTF Writeups <strong></strong></a></h1>
+                  <h1><a href="./">Krebs CTF Writeups <strong></strong></a></h1>
           </header><!-- /#banner -->
 
             <div id="navigation" class="navbar row">
               <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
              
               <ul class="columns">
-                <li><a href=".">Home</a></li>
+                <li><a href="./">Home</a></li>
 
                 <li><a href="/atom.xml">RSS</a></li>
                 <li><a href="./pages/contact.html">Contact</a></li>
@@ -62,18 +62,18 @@
               <abbr class="published" title="2014-07-18T00:00:00">
                 Fri 18 July 2014
               </abbr>
-              <address class="vcard author">
-                By <a class="url fn" href="./author/makefu.html">makefu</a>
+              <address class="vcard author">By 
+                <a class="url fn" href="./author/makefu.html"> makefu</a>
               </address>
             </footer><!-- /.post-info -->
             <div class="entry-content">
               <ul>
-<li>Solved by: ttb,exco,makefu</li>
-<li>Writeup Author: makefu</li>
+<li><strong>Solved by:</strong> ttb,exco,makefu</li>
+<li><strong>Writeup Author:</strong> makefu</li>
 </ul>
 <h2>Introduction</h2>
 <p>We got an url, and are being told to return the password of the crackme in 3
-seconds to http://41.231.53.44:9393/check.php?p=<Password>.</p>
+seconds to http://41.231.53.44:9393/check.php?p=<strong>Password</strong>.</p>
 <h2>Analyse what we've got</h2>
 <p>at first, look what we receive:</p>
 <div class="highlight"><pre><span class="nv">$ </span>curl http://41.231.53.44:9393/ | strings
@@ -228,8 +228,9 @@ http connection open an just pumped the result right back.</p>
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-4"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
-	    <li class="tag-4"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-4"><a href="./tag/captcha.html">captcha</a></li>
+	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
 </ul>
 
 

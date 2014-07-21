@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <title>ROT</title>
+        <meta charset="utf-8" />
+        <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
+
+
+        <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+        <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="./theme/gumby.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/style.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/pygment.css" />
+
+        <script src="./theme/js/libs/modernizr-2.6.2.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body id="index" class="home">
+
+
+    <div class="container">
+
+        <div class="row">
+
+          <header id="banner" class="body">
+                  <h1><a href="./">Krebs CTF Writeups <strong></strong></a></h1>
+          </header><!-- /#banner -->
+
+            <div id="navigation" class="navbar row">
+              <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
+             
+              <ul class="columns">
+                <li><a href="./">Home</a></li>
+
+                <li><a href="/atom.xml">RSS</a></li>
+                <li><a href="./pages/contact.html">Contact</a></li>
+
+              </ul>
+            </div>
+
+<section id="content" class="body">
+
+   <div class="row">
+        <div class="eleven columns">
+
+
+            <header>
+              <h2 class="entry-title">
+                <a href="./rot.html" rel="bookmark"
+                   title="Permalink to ROT">ROT</a></h2>
+           
+            </header>
+            <footer class="post-info">
+              <abbr class="published" title="2014-07-21T00:00:00">
+                Mon 21 July 2014
+              </abbr>
+              <address class="vcard author">By 
+                <a class="url fn" href="./author/makefu.html"> makefu</a>
+                <a class="url fn" href="./author/momorientes.html"> momorientes</a>
+              </address>
+            </footer><!-- /.post-info -->
+            <div class="entry-content">
+              <ul>
+<li>Solved by: momorientes,exco,ttb,makefu</li>
+<li>Author First Part: momorientes</li>
+<li>Author Second Part: makefu</li>
+</ul>
+<h2>Introduction</h2>
+<p>We got a raw-socket ip and port and when connecting to it we got a big ASCII
+blob. After cracking the code you have to send it back within 5 seconds.</p>
+<p>The == at the end of the Text hinted towards base64 encoding. </p>
+<h2>Part 1: Decoding the Message</h2>
+<p>Momo needs to write shitz here about decoding, image stitching and so on</p>
+<p><img alt="Retrieved image" src="data/rot/foo.png" /></p>
+<h2>Part 2: Automated Text Recognition</h2>
+<p>As expected, manually cracking the captcha is close to impossible, humans are
+pretty bad at cracking captchas quickly. Therefore we needed needed the power
+of OCR to crack the code and send it back to the server.</p>
+<p>As pytesser seemed to be the most uncomplicated python library to extract text
+from an image we tried to throw it directly against the image</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;difference.png&quot;</span><span class="p">)</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&quot;RGB&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytesser</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">passwd</span> <span class="o">=</span> <span class="n">image_to_string</span><span class="p">(</span><span class="n">img</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+</pre></div>
+
+
+<p>After a few tries it seemed like the text recognition was too bad against the
+raw image so we decided to perform some pre-processing of the image:</p>
+<ol>
+<li>make the background (true blue and magenta) white </li>
+<li>make the text (every other color) black</li>
+</ol>
+<p>We use PIL and load the image into a directly-mapped twodimensional array
+This is what we came up with:</p>
+<div class="highlight"><pre><span class="n">pixdata</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="c"># Clean the background noise, if color != white, then set to black.</span>
+<span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">):</span>
+            <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">)</span>
+</pre></div>
+
+
+<p>After pre-processing, the hit rate was is at close to 100 percent, yay!</p>
+<h2>Putting it together</h2>
+<p>When putting everything together, this is our code:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c">#-*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">telnetlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span> 
+<span class="n">tn</span> <span class="o">=</span> <span class="n">telnetlib</span><span class="o">.</span><span class="n">Telnet</span><span class="p">(</span><span class="s">&quot;41.231.53.40&quot;</span><span class="p">,</span> <span class="mi">9090</span><span class="p">)</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">foo</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;foo.png&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;convert foo.png -crop 100x200+0+0 left.png&#39;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;convert foo.png -crop 100x200+100+0 right.png&#39;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;convert left.png -rotate -90 left_rot.png&#39;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;convert right.png -rotate 90 right_rot.png&#39;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;composite left_rot.png right_rot.png -compose difference difference.png&#39;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s">&quot;difference.png&quot;</span><span class="p">)</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&quot;RGBA&quot;</span><span class="p">)</span>
+
+<span class="n">pixdata</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">):</span>
+            <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pixdata</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">,</span><span class="mi">255</span><span class="p">)</span>
+<span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&quot;RGB&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytesser</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">passwd</span> <span class="o">=</span> <span class="n">image_to_string</span><span class="p">(</span><span class="n">img</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">passwd</span><span class="p">)</span>
+<span class="n">tn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">passwd</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">tn</span><span class="o">.</span><span class="n">read_all</span><span class="p">())</span>
+</pre></div>
+</td></tr></table>
+
+<p>After running, the Flag was written to stdout, success!</p>
+            </div><!-- /.entry-content -->
+
+
+        </div><!-- /.eleven.columns -->
+        
+<div class="three columns">
+
+<h4>Pages</h4>
+
+ <ul>
+      <li><a href="/atom.xml">RSS</a></li>
+      <li><a href="./pages/contact.html">Contact</a></li>
+  </ul>
+
+<h4>Categories</h4>
+<ul>
+		<li><a href="./category/posts.html">posts</a></li>
+</ul>
+
+
+<h4>Tags</h4>
+	<ul>
+	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-4"><a href="./tag/captcha.html">captcha</a></li>
+	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+</ul>
+
+
+<nav class="widget">
+  <h4>Social</h4>
+  <ul>
+    <li><a href="http://twitter.com/krebsbob">@krebsbob</a></li>
+    <li><a href="irc://irc.freenode.net#krebs">irc.freenode.net#krebs</a></li>
+  </ul>
+</nav>
+
+</div> </div><!-- /.row -->
+
+
+</section>
+
+       </div><!-- /.row -->
+    </div><!-- /.container -->
+
+
+       <div class="container.nopad bg">
+
+    
+        <footer id="credits" class="row">
+          <div class="seven columns left-center">
+
+                   <address id="about" class="vcard body">
+                    Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                    which takes great advantage of <a href="http://python.org">Python</a>.
+                    <br />
+                    Based on the <a target="_blank" href="http://gumbyframework.com">Gumby Framework</a>
+                    </address>
+          </div>
+
+
+          <div class="seven columns">
+            <div class="row">
+              <ul class="socbtns">
+
+
+
+
+
+              </ul>
+            </div>
+          </div>
+        </footer>
+
+    </div>
+
+
+  <script src="./theme/js/libs/jquery-1.9.1.min.js"></script>
+  <script src="./theme/js/libs/gumby.min.js"></script>
+  <script src="./theme/js/plugins.js"></script>
+</body>
+</html>
