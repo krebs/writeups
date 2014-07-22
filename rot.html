@@ -75,7 +75,7 @@
 </ul>
 <h2>Introduction</h2>
 <p>We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 5 seconds.</p>
+blob. After cracking the code you have to send it back within 2 seconds.</p>
 <p>The == at the end of the Text hinted towards base64 encoding. </p>
 <h2>Part 1: Decoding the Message</h2>
 <p>Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
@@ -93,7 +93,7 @@ After we figured what the data is we began to extract the (decoded) image into a
 
 <p>Which left us with this image:<br />
 <img alt="Retrieved image" src="data/rot/foo.png" /></p>
-<p>After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...<br />
+<p>After a while of staring at the image and hints exco and I figured that the image needed to be split vertically...<br />
 <img alt="left" src="data/rot/left.png" />
 <img alt="right" src="data/rot/right.png" /><br />
 <code>convert foo.png -crop 100x200+0+0 left.png</code><br />
@@ -249,9 +249,9 @@ This is what we came up with:</p>
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
-	    <li class="tag-4"><a href="./tag/captcha.html">captcha</a></li>
 	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
+	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
 </ul>
 
 

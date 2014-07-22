@@ -6,7 +6,7 @@
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 5 seconds.&lt;/p&gt;
+blob. After cracking the code you have to send it back within 2 seconds.&lt;/p&gt;
 &lt;p&gt;The == at the end of the Text hinted towards base64 encoding. &lt;/p&gt;
 &lt;h2&gt;Part 1: Decoding the Message&lt;/h2&gt;
 &lt;p&gt;Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
@@ -24,7 +24,7 @@ After we figured what the data is we began to extract the (decoded) image into a
 
 &lt;p&gt;Which left us with this image:&lt;br /&gt;
 &lt;img alt="Retrieved image" src="data/rot/foo.png" /&gt;&lt;/p&gt;
-&lt;p&gt;After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...&lt;br /&gt;
+&lt;p&gt;After a while of staring at the image and hints exco and I figured that the image needed to be split vertically...&lt;br /&gt;
 &lt;img alt="left" src="data/rot/left.png" /&gt;
 &lt;img alt="right" src="data/rot/right.png" /&gt;&lt;br /&gt;
 &lt;code&gt;convert foo.png -crop 100x200+0+0 left.png&lt;/code&gt;&lt;br /&gt;
@@ -295,4 +295,25 @@ http connection open an just pumped the result right back.&lt;/p&gt;
 
 &lt;h2&gt;Lessons learned&lt;/h2&gt;
 &lt;p&gt;Just use python in first place, shell is not the right tool to solve reverse engineering tasks. Also, get some more exercise with your tools of trade.&lt;/p&gt;
-&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry></feed>
+&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry><entry><title>for1 USB Dump</title><link href="http://krebsco.de/for1-usb-dump.html" rel="alternate"></link><updated>2014-07-17T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-17:for1-usb-dump.html</id><summary type="html">&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes, makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author&lt;/strong&gt;: makefu&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Finding the needle in the haystack&lt;/h2&gt;
+&lt;p&gt;We received an dump file which was loadable via wireshark. The dump looks like
+some usb-traffic between a computer and a USB-SATA Hard Disk.&lt;/p&gt;
+&lt;p&gt;Normally it is a good idea to sort traces by size as bigger packets normally
+contain &lt;em&gt;interesing&lt;/em&gt; data. URB_BULK packages contain actual transfer data from
+the disk.
+After looking around we remembered that at the beginning of the ctf (the website was still offline) we got told that the flag format is Pwnium{md5}.&lt;/p&gt;
+&lt;p&gt;A quick &lt;code&gt;-&amp;gt; ctrl-f -&amp;gt; string -&amp;gt; pwnium -&amp;gt; Packet bytes -&amp;gt; Pwnium&lt;/code&gt; revealed
+what we were looking for. 
+That was easy!&lt;/p&gt;
+&lt;h2&gt;Remarks&lt;/h2&gt;
+&lt;p&gt;Besides that, there were quite a lot of nice finds in the dump:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Packet 860&lt;/em&gt;: Mac OS X - This resource fork intentionally blank left&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Packet 854&lt;/em&gt;: Riot Games&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Packet 116&lt;/em&gt;: EPORT~1PDF&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href="data/usb_dump/for1.pcapng"&gt;The original Dump File&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="captcha"></category></entry></feed>

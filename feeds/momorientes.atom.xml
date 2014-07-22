@@ -6,7 +6,7 @@
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 5 seconds.&lt;/p&gt;
+blob. After cracking the code you have to send it back within 2 seconds.&lt;/p&gt;
 &lt;p&gt;The == at the end of the Text hinted towards base64 encoding. &lt;/p&gt;
 &lt;h2&gt;Part 1: Decoding the Message&lt;/h2&gt;
 &lt;p&gt;Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
@@ -24,7 +24,7 @@ After we figured what the data is we began to extract the (decoded) image into a
 
 &lt;p&gt;Which left us with this image:&lt;br /&gt;
 &lt;img alt="Retrieved image" src="data/rot/foo.png" /&gt;&lt;/p&gt;
-&lt;p&gt;After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...&lt;br /&gt;
+&lt;p&gt;After a while of staring at the image and hints exco and I figured that the image needed to be split vertically...&lt;br /&gt;
 &lt;img alt="left" src="data/rot/left.png" /&gt;
 &lt;img alt="right" src="data/rot/right.png" /&gt;&lt;br /&gt;
 &lt;code&gt;convert foo.png -crop 100x200+0+0 left.png&lt;/code&gt;&lt;br /&gt;
