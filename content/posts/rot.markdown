@@ -9,7 +9,7 @@ tags: crackme, pwnium2014, captcha
 
 ## Introduction
 We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 5 seconds.
+blob. After cracking the code you have to send it back within 2 seconds.
 
 The == at the end of the Text hinted towards base64 encoding. 
 ## Part 1: Decoding the Message
@@ -30,7 +30,7 @@ After we figured what the data is we began to extract the (decoded) image into a
 Which left us with this image:  
 ![Retrieved image](data/rot/foo.png)
 
-After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...  
+After a while of staring at the image and hints exco and I figured that the image needed to be split vertically...  
 ![left](data/rot/left.png)
 ![right](data/rot/right.png)  
 `convert foo.png -crop 100x200+0+0 left.png`  
