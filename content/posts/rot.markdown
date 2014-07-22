@@ -9,9 +9,9 @@ tags: crackme, pwnium2014, captcha
 
 ## Introduction
 We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 2 seconds.
+clob. After cracking the code you have to send it back within 2 seconds.
 
-The == at the end of the Text hinted towards base64 encoding. 
+The == at the end of the text hinted towards base64 encoding. 
 ## Part 1: Decoding the Message
 
 Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
