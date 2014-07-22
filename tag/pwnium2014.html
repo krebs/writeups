@@ -70,8 +70,8 @@
 <li><strong>Author Second Part</strong>: makefu</li>
 </ul>
 <h2>Introduction</h2>
-<p>We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 2 seconds.</p>
+<p>We got a raw-socket ip and port and when connecting to it we received an ASCII
+clob. After cracking the code you have to send the passcode back within 2 seconds.</p>
 <p>The == at the end ...</p> </div><!-- /.entry-content -->
 
                                 <div class="medium primary btn"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">Read more <i class="icon-arrow-right"></i></a></div>
@@ -108,42 +108,6 @@ seconds to http://41.231.53.44:9393/check.php?p=<strong>Password</strong>.</p>
 <div class="highlight"><pre><span class="nv">$ </span>curl ...</pre></div> </div><!-- /.entry-content -->
 
                                 <div class="medium primary btn"><a href="../crackme-fast.html" rel="bookmark" title="Permalink to Crackme Fast">Read more <i class="icon-arrow-right"></i></a></div>
-
-
-
-                                <div class="row tag-row">
-                                        <span>Tagged as : </span>
-                                            <a class="danger label" href="../tag/crackme.html">crackme</a>
-                                            <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-                                </div>
-
-
-
-                        </article></li>
-                        <li><article class="hentry">
-                                <header> <h2 class="entry-title"><a href="../crack-me.html" rel="bookmark" title="Permalink to Crack me">Crack me</a></h2> </header>
-                                <footer class="post-info">
-                                    <abbr class="published" title="2014-07-17T00:00:00"> Thu 17 July 2014 </abbr>
-                                    <address class="vcard author">By 
-                                    <a class="url fn" href="../author/momorientes.html"> momorientes</a>
-                                    </address>
-                                </footer><!-- /.post-info -->
-                                <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: exco, ttb, makefu</li>
-<li><strong>Author</strong>: momorientes</li>
-</ul>
-<p><code>QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA=</code> was the only information avaliable.<br />
-The trailing <code>=</code> is always a good hint for base64, so we'll try that:</p>
-<div class="highlight"><pre><span class="nb">echo</span> -n QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA<span class="o">=</span> | base64 -d                                
-BZh91AY&amp;SY&lt;Rà
-                _à; 0Ôô%²³<span class="nv">$É</span>
-                            @Ú<span class="o">[</span>½x¿rE8P&lt;R
-</pre></div>
-
-
-<p>While this might look like ...</p> </div><!-- /.entry-content -->
-
-                                <div class="medium primary btn"><a href="../crack-me.html" rel="bookmark" title="Permalink to Crack me">Read more <i class="icon-arrow-right"></i></a></div>
 
 
 
@@ -208,9 +172,9 @@ some usb-traffic between a computer and a USB-SATA Hard Disk.</p>
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-2"><a href="../tag/captcha.html">captcha</a></li>
 	    <li class="tag-1"><a href="../tag/pwnium2014.html">pwnium2014</a></li>
 	    <li class="tag-1"><a href="../tag/crackme.html">crackme</a></li>
+	    <li class="tag-2"><a href="../tag/captcha.html">captcha</a></li>
 </ul>
 
 

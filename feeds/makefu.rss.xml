@@ -5,9 +5,9 @@
 &lt;li&gt;&lt;strong&gt;Author Second Part&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 2 seconds.&lt;/p&gt;
-&lt;p&gt;The == at the end of the Text hinted towards base64 encoding. &lt;/p&gt;
+&lt;p&gt;We got a raw-socket ip and port and when connecting to it we received an ASCII
+clob. After cracking the code you have to send the passcode back within 2 seconds.&lt;/p&gt;
+&lt;p&gt;The == at the end of the text hinted towards base64 encoding. &lt;/p&gt;
 &lt;h2&gt;Part 1: Decoding the Message&lt;/h2&gt;
 &lt;p&gt;Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
 After we figured what the data is we began to extract the (decoded) image into a file.&lt;/p&gt;
