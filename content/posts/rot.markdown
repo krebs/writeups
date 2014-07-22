@@ -8,8 +8,8 @@ tags: crackme, pwnium2014, captcha
  * **Author Second Part**: makefu
 
 ## Introduction
-We got a raw-socket ip and port and when connecting to it we got a big ASCII
-clob. After cracking the code you have to send it back within 2 seconds.
+We got a raw-socket ip and port and when connecting to it we received an ASCII
+clob. After cracking the code you have to send the passcode back within 2 seconds.
 
 The == at the end of the text hinted towards base64 encoding. 
 ## Part 1: Decoding the Message
