@@ -1,4 +1,4 @@
-title: USB Dump
+title: for1 USB Dump
 date: 2014-07-17
 author: makefu
 tags: crackme, pwnium2014, captcha
@@ -16,13 +16,14 @@ the disk.
 After looking around we remembered that at the beginning of the ctf (the website was still offline) we got told that the flag format is Pwnium{md5}.
 
 A quick `-> ctrl-f -> string -> pwnium -> Packet bytes -> Pwnium` revealed
-what we were looking for. That was easy.
+what we were looking for. 
+That was easy!
 
+## Remarks
 Besides that, there were quite a lot of nice finds in the dump:
 
- * 860: Mac OS X
-        This resource fork intentionally blank left
- * 854: Riot Games
- * 116: EPORT~1PDF
+ * *Packet 860*: Mac OS X - This resource fork intentionally blank left
+ * *Packet 854*: Riot Games
+ * *Packet 116*: EPORT~1PDF
 
 [The original Dump File](data/usb_dump/for1.pcapng)
