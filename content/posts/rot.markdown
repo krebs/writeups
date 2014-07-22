@@ -3,7 +3,7 @@ date: 2014-07-21
 authors: makefu, momorientes
 tags: crackme, pwnium2014, captcha
 
- * **Solved by**: momorientes,exco,ttb,makefu
+ * **Solved by**: momorientes, exco, ttb, makefu
  * **Author First Part**: momorientes
  * **Author Second Part**: makefu
 
@@ -14,9 +14,38 @@ blob. After cracking the code you have to send it back within 5 seconds.
 The == at the end of the Text hinted towards base64 encoding. 
 ## Part 1: Decoding the Message
 
-Momo needs to write shitz here about decoding, image stitching and so on
+Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
+After we figured what the data is we began to extract the (decoded) image into a file.
 
+    :::python
+    import telnetlib
+    import base64
+    tn = telnetlib.Telnet("41.231.53.40", 9090)
+    foo = tn.read_until('\n', 2)
+    foo = foo.strip()
+    foo = base64.b64decode(foo)
+    with open('foo.png', 'w') as f:
+        f.write(foo) 
+
+Which left us with this image:  
 ![Retrieved image](data/rot/foo.png)
+
+After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...  
+![left](data/rot/left.png)
+![right](data/rot/right.png)  
+`convert foo.png -crop 100x200+0+0 left.png`  
+`convert foo.png -crop 100x200+100+0 right.png`  
+.. and the left part had to be rotated by -90deg, the right part by 90 deg.  
+You can see the results here:  
+![left](data/rot/left_rot.png)
+![right](data/rot/right_rot.png)  
+`convert left.png -rotate -90 left_rot.png`  
+`convert right.png -rotate 90 right_rot.png`  
+
+You can imagine that these 2 images, when merged together, show a hidden code, which we then tried to decipher by opening the images using [feh](http://feh.finalrewind.org/) and some drag and drop only to realize that there is a time limit of roughly 2s.  
+We tried to be faster by composing both images into one, this is the result:  
+![difference](data/rot/difference.png)  
+`composite left_rot.png right_rot.png -compose difference difference.png`
 
 ## Part 2: Automated Text Recognition
 As expected, manually cracking the captcha is close to impossible, humans are
@@ -64,7 +93,6 @@ When putting everything together, this is our code:
     import telnetlib
     import base64
     import os
-    import time 
     tn = telnetlib.Telnet("41.231.53.40", 9090)
     foo = tn.read_until('\n', 2)
     foo = foo.strip()
