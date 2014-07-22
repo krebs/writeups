@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Krebs CTF Writeups</title><link>http://krebsco.de/</link><description></description><atom:link href="http://krebsco.de/feeds/momorientes.rss.xml" rel="self"></atom:link><lastBuildDate>Mon, 21 Jul 2014 00:00:00 +0200</lastBuildDate><item><title>ROT</title><link>http://krebsco.de/rot.html</link><description>&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes,exco,ttb,makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes, exco, ttb, makefu&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Author First Part&lt;/strong&gt;: momorientes&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Author Second Part&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
@@ -9,8 +9,36 @@
 blob. After cracking the code you have to send it back within 5 seconds.&lt;/p&gt;
 &lt;p&gt;The == at the end of the Text hinted towards base64 encoding. &lt;/p&gt;
 &lt;h2&gt;Part 1: Decoding the Message&lt;/h2&gt;
-&lt;p&gt;Momo needs to write shitz here about decoding, image stitching and so on&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Retrieved image" src="data/rot/foo.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
+After we figured what the data is we began to extract the (decoded) image into a file.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;telnetlib&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt;
+&lt;span class="n"&gt;tn&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;telnetlib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Telnet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;41.231.53.40&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9090&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;foo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_until&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;foo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;foo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;base64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;b64decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;foo.png&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Which left us with this image:&lt;br /&gt;
+&lt;img alt="Retrieved image" src="data/rot/foo.png" /&gt;&lt;/p&gt;
+&lt;p&gt;After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...&lt;br /&gt;
+&lt;img alt="left" src="data/rot/left.png" /&gt;
+&lt;img alt="right" src="data/rot/right.png" /&gt;&lt;br /&gt;
+&lt;code&gt;convert foo.png -crop 100x200+0+0 left.png&lt;/code&gt;&lt;br /&gt;
+&lt;code&gt;convert foo.png -crop 100x200+100+0 right.png&lt;/code&gt;&lt;br /&gt;
+.. and the left part had to be rotated by -90deg, the right part by 90 deg.&lt;br /&gt;
+You can see the results here:&lt;br /&gt;
+&lt;img alt="left" src="data/rot/left_rot.png" /&gt;
+&lt;img alt="right" src="data/rot/right_rot.png" /&gt;&lt;br /&gt;
+&lt;code&gt;convert left.png -rotate -90 left_rot.png&lt;/code&gt;&lt;br /&gt;
+&lt;code&gt;convert right.png -rotate 90 right_rot.png&lt;/code&gt;  &lt;/p&gt;
+&lt;p&gt;You can imagine that these 2 images, when merged together, show a hidden code, which we then tried to decipher by opening the images using &lt;a href="http://feh.finalrewind.org/"&gt;feh&lt;/a&gt; and some drag and drop only to realize that there is a time limit of roughly 2s.&lt;br /&gt;
+We tried to be faster by composing both images into one, this is the result:&lt;br /&gt;
+&lt;img alt="difference" src="data/rot/difference.png" /&gt;&lt;br /&gt;
+&lt;code&gt;composite left_rot.png right_rot.png -compose difference difference.png&lt;/code&gt;&lt;/p&gt;
 &lt;h2&gt;Part 2: Automated Text Recognition&lt;/h2&gt;
 &lt;p&gt;As expected, manually cracking the captcha is close to impossible, humans are
 pretty bad at cracking captchas quickly. Therefore we needed needed the power
@@ -85,14 +113,12 @@ This is what we came up with:&lt;/p&gt;
 36
 37
 38
-39
-40&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python&lt;/span&gt;
+39&lt;/pre&gt;&lt;/div&gt;&lt;/td&gt;&lt;td class="code"&gt;&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/usr/bin/env python&lt;/span&gt;
 &lt;span class="c"&gt;#-*- coding: utf-8 -*-&lt;/span&gt;
 
 &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;telnetlib&lt;/span&gt;
 &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt;
 &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt; 
 &lt;span class="n"&gt;tn&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;telnetlib&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Telnet&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;41.231.53.40&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9090&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;foo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_until&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;foo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strip&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;

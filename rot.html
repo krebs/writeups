@@ -69,7 +69,7 @@
             </footer><!-- /.post-info -->
             <div class="entry-content">
               <ul>
-<li><strong>Solved by</strong>: momorientes,exco,ttb,makefu</li>
+<li><strong>Solved by</strong>: momorientes, exco, ttb, makefu</li>
 <li><strong>Author First Part</strong>: momorientes</li>
 <li><strong>Author Second Part</strong>: makefu</li>
 </ul>
@@ -78,8 +78,36 @@
 blob. After cracking the code you have to send it back within 5 seconds.</p>
 <p>The == at the end of the Text hinted towards base64 encoding. </p>
 <h2>Part 1: Decoding the Message</h2>
-<p>Momo needs to write shitz here about decoding, image stitching and so on</p>
-<p><img alt="Retrieved image" src="data/rot/foo.png" /></p>
+<p>Disclaimer: I(momo) am very sorry for this code, but it's a CTF and it worked.
+After we figured what the data is we began to extract the (decoded) image into a file.</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">telnetlib</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="n">tn</span> <span class="o">=</span> <span class="n">telnetlib</span><span class="o">.</span><span class="n">Telnet</span><span class="p">(</span><span class="s">&quot;41.231.53.40&quot;</span><span class="p">,</span> <span class="mi">9090</span><span class="p">)</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">foo</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">foo</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;foo.png&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Which left us with this image:<br />
+<img alt="Retrieved image" src="data/rot/foo.png" /></p>
+<p>After a while of stareing at the image and hints exco and I figured that the image needed to be split vertically...<br />
+<img alt="left" src="data/rot/left.png" />
+<img alt="right" src="data/rot/right.png" /><br />
+<code>convert foo.png -crop 100x200+0+0 left.png</code><br />
+<code>convert foo.png -crop 100x200+100+0 right.png</code><br />
+.. and the left part had to be rotated by -90deg, the right part by 90 deg.<br />
+You can see the results here:<br />
+<img alt="left" src="data/rot/left_rot.png" />
+<img alt="right" src="data/rot/right_rot.png" /><br />
+<code>convert left.png -rotate -90 left_rot.png</code><br />
+<code>convert right.png -rotate 90 right_rot.png</code>  </p>
+<p>You can imagine that these 2 images, when merged together, show a hidden code, which we then tried to decipher by opening the images using <a href="http://feh.finalrewind.org/">feh</a> and some drag and drop only to realize that there is a time limit of roughly 2s.<br />
+We tried to be faster by composing both images into one, this is the result:<br />
+<img alt="difference" src="data/rot/difference.png" /><br />
+<code>composite left_rot.png right_rot.png -compose difference difference.png</code></p>
 <h2>Part 2: Automated Text Recognition</h2>
 <p>As expected, manually cracking the captcha is close to impossible, humans are
 pretty bad at cracking captchas quickly. Therefore we needed needed the power
@@ -154,14 +182,12 @@ This is what we came up with:</p>
 36
 37
 38
-39
-40</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+39</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="c">#-*- coding: utf-8 -*-</span>
 
 <span class="kn">import</span> <span class="nn">telnetlib</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span> 
 <span class="n">tn</span> <span class="o">=</span> <span class="n">telnetlib</span><span class="o">.</span><span class="n">Telnet</span><span class="p">(</span><span class="s">&quot;41.231.53.40&quot;</span><span class="p">,</span> <span class="mi">9090</span><span class="p">)</span>
 <span class="n">foo</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">foo</span> <span class="o">=</span> <span class="n">foo</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -223,8 +249,8 @@ This is what we came up with:</p>
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-4"><a href="./tag/captcha.html">captcha</a></li>
 	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-4"><a href="./tag/captcha.html">captcha</a></li>
 	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
 </ul>
 
