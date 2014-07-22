@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-        <title>Dropbear Public-Key Authentication</title>
+        <title>Crack me</title>
         <meta charset="utf-8" />
         <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
 
@@ -31,18 +31,17 @@
         <div class="row">
 
           <header id="banner" class="body">
-                  <h1><a href=".">Krebs CTF Writeups <strong></strong></a></h1>
+                  <h1><a href="./">Krebs CTF Writeups <strong></strong></a></h1>
           </header><!-- /#banner -->
 
             <div id="navigation" class="navbar row">
               <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
              
               <ul class="columns">
-                <li><a href=".">Home</a></li>
+                <li><a href="./">Home</a></li>
 
                 <li><a href="/atom.xml">RSS</a></li>
                 <li><a href="./pages/contact.html">Contact</a></li>
-                <li><a href="./pages/crackme-fast.html">Crackme Fast</a></li>
 
               </ul>
             </div>
@@ -55,20 +54,40 @@
 
             <header>
               <h2 class="entry-title">
-                <a href="./dropbear-public-key-authentication.html" rel="bookmark"
-                   title="Permalink to Dropbear Public-Key Authentication">Dropbear Public-Key Authentication</a></h2>
+                <a href="./crack-me.html" rel="bookmark"
+                   title="Permalink to Crack me">Crack me</a></h2>
            
             </header>
             <footer class="post-info">
-              <abbr class="published" title="2014-07-21T00:00:00">
-                Mon 21 July 2014
+              <abbr class="published" title="2014-07-20T00:00:00">
+                Sun 20 July 2014
               </abbr>
-              <address class="vcard author">
-                By <a class="url fn" href="./author/krebsminister.html">Krebsminister</a>
+              <address class="vcard author">By 
+                <a class="url fn" href="./author/momorientes.html"> momorientes</a>
               </address>
             </footer><!-- /.post-info -->
             <div class="entry-content">
-              <h1>Hello World</h1>
+              <ul>
+<li><strong>Solved by</strong>: exco, ttb, makefu</li>
+<li><strong>Author</strong>: momorientes</li>
+</ul>
+<p><code>QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA=</code> was the only information avaliable.<br />
+The trailing <code>=</code> is always a good hint for base64, so we'll try that:</p>
+<div class="highlight"><pre><span class="nb">echo</span> -n QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA<span class="o">=</span> | base64 -d                                
+BZh91AY&amp;SY&lt;Rà
+                _à; 0Ôô%²³<span class="nv">$É</span>
+                            @Ú<span class="o">[</span>½x¿rE8P&lt;R
+</pre></div>
+
+
+<p>While this might look like complete crap the <code>BZ</code> in the header is the magic number of bzip. The <code>h</code> tells us that is Huffman coding we're dealing with and therefore <code>bzip2</code>. The <code>9</code> shows us the uncompressed block-size in 100kB (here:900kB).</p>
+<p>Easy enough all we have to do is pipe our base64 decoded string into bunzip2:</p>
+<div class="highlight"><pre><span class="nb">echo </span>QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA<span class="o">=</span> | base64 -d | bunzip2 -d
+9afa828748387b6ac0a393c00e542079
+</pre></div>
+
+
+<p>That's it, no Pwnium{} flag format needed (that did cost us quite some time)!</p>
             </div><!-- /.entry-content -->
 
 
@@ -81,7 +100,6 @@
  <ul>
       <li><a href="/atom.xml">RSS</a></li>
       <li><a href="./pages/contact.html">Contact</a></li>
-      <li><a href="./pages/crackme-fast.html">Crackme Fast</a></li>
   </ul>
 
 <h4>Categories</h4>
@@ -92,7 +110,9 @@
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-4"><a href="./tag/pwnium.html">pwnium</a></li>
+	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
+	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
 </ul>
 
 
