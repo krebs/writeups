@@ -76,8 +76,8 @@
  $ nc <ip> 2048
 and solve 2048, the game in less than 6 minutes.
 The time was later reduced to 3.5 minutes.</p>
-<p>2048 on that server looked roughly like this:
-<img alt="2048 bash example" src="data/2048/2048_example.jpeg" /></p>
+<p>2048 on that server looked roughly like this:</p>
+<p><img alt="2048 bash example" src="data/2048/2048_ascii.jpeg" /></p>
 <p>u = up
 d = down
 l = left
@@ -96,49 +96,71 @@ just dumping all the functions from 2048-AI in a single file
 (not knowing how to properly load js files with node).</p>
 <h2>Coding/Automation:</h2>
 <p>start:</p>
-<p>put all returned data in the my2048 variable
- my2048 = data;
-split the lines at \n (newline)
-  my2048_lines = my2048.toString('ascii').split('\n');
-work some more (ugly) magic to get a 2-dim my2048arr with all the numbers
-  for (i=my2048_lines.length-6; i&lt;my2048_lines.length-2; i++) {
-   my2048arr [i - my2048_lines.length+6] = my2048_lines[i].trim().split(' ');
-    for (j=0; j&lt;4; j++) {
-     if (my2048arr [i - my2048_lines.length+6][j] == '.') {
-      my2048arr [i - my2048_lines.length+6][j] = '0'}
-     my2048arr [i - my2048_lines.length+6][j] = parseInt(my2048arr [i - my2048_lines.length+6][j], 10);
-}
-  }</p>
-<p>Instantiate a grid for the 2048-AI and fill it with our 2048 array.
- this.grid = new Grid(4);</p>
-<p>for (i=0; i&lt;4; i++) {
-   for (j=0; j&lt;4; j++) {</p>
-<div class="highlight"><pre>  <span class="n">var</span> <span class="n">tile</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Tile</span><span class="p">(</span><span class="n">this</span><span class="p">.</span><span class="n">grid</span><span class="p">.</span><span class="n">randomAvailableCell</span><span class="p">(),</span> <span class="n">my2048arr</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]);</span>
- <span class="n">tile</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
- <span class="n">tile</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">j</span><span class="p">;</span>
- <span class="k">if</span> <span class="p">(</span><span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
- <span class="c1">// tile.value = my2048arr [i][j];</span>
-<span class="c1">//console.log(tile);</span>
-<span class="n">this</span><span class="p">.</span><span class="n">grid</span><span class="p">.</span><span class="n">insertTile</span><span class="p">(</span><span class="n">tile</span><span class="p">);}</span>
+<p>put all returned data in the my2048 variable</p>
+<div class="highlight"><pre>    <span class="n">my2048</span> <span class="o">=</span> <span class="n">data</span><span class="p">;</span>
 </pre></div>
 
 
-<p>}</p>
-<p>Start the solver
-  this.ai = new AI(this.grid);</p>
+<p>split the lines at \n (newline)</p>
+<div class="highlight"><pre><span class="n">my2048_lines</span> <span class="o">=</span> <span class="n">my2048</span><span class="p">.</span><span class="n">toString</span><span class="p">(</span><span class="err">&#39;</span><span class="n">ascii</span><span class="err">&#39;</span><span class="p">).</span><span class="n">split</span><span class="p">(</span><span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>work some more (ugly) magic to get a 2-dim my2048arr with all the numbers</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">-</span><span class="mi">6</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">-</span><span class="mi">2</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+ <span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">+</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">my2048_lines</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">trim</span><span class="p">().</span><span class="n">split</span><span class="p">(</span><span class="sc">&#39; &#39;</span><span class="p">);</span>
+ <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">+</span><span class="mi">6</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">+</span><span class="mi">6</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">}</span>
+ <span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">+</span><span class="mi">6</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">parseInt</span><span class="p">(</span><span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">my2048_lines</span><span class="p">.</span><span class="n">length</span><span class="o">+</span><span class="mi">6</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="mi">10</span><span class="p">);</span>
+ <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Instantiate a grid for the 2048-AI and fill it with our 2048 array.</p>
+<div class="highlight"><pre><span class="n">this</span><span class="p">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Grid</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+ <span class="k">for</span> <span class="p">(</span><span class="n">j</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+ <span class="n">var</span> <span class="n">tile</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Tile</span><span class="p">(</span><span class="n">this</span><span class="p">.</span><span class="n">grid</span><span class="p">.</span><span class="n">randomAvailableCell</span><span class="p">(),</span> <span class="n">my2048arr</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]);</span>
+ <span class="n">tile</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+ <span class="n">tile</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">j</span><span class="p">;</span>
+ <span class="k">if</span> <span class="p">(</span><span class="n">my2048arr</span> <span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">this</span><span class="p">.</span><span class="n">grid</span><span class="p">.</span><span class="n">insertTile</span><span class="p">(</span><span class="n">tile</span><span class="p">);</span>
+ <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Start the solver</p>
+<div class="highlight"><pre><span class="n">this</span><span class="p">.</span><span class="n">ai</span> <span class="o">=</span> <span class="n">new</span> <span class="n">AI</span><span class="p">(</span><span class="n">this</span><span class="p">.</span><span class="n">grid</span><span class="p">);</span>
+</pre></div>
+
+
 <p>What we bruteforced was the transformation from our 2048 matrix to the 2048-AI one - 
 because when we first got the script to do what we wanted we always got stuck after a while but without the game being lost - so we figured the AI was working with a different matrix orientation.</p>
-<p>//  0: { x: 0,  y: -1 }, // up
-//  1: { x: 1,  y: 0 },  // right
-//  2: { x: 0,  y: 1 },  // down
-//  3: { x: -1, y: 0 }   // left</p>
-<p>var myMove = ['l', 'd', 'r', 'u'];</p>
-<p>get the best move from the AI:
- var nowMove = this.ai.getBest().move;</p>
-<p>send that move to the server:
- client.send(myMove[nowMove] + '\n');</p>
+<div class="highlight"><pre><span class="c1">//  0: { x: 0,  y: -1 }, // up</span>
+<span class="c1">//  1: { x: 1,  y: 0 },  // right</span>
+<span class="c1">//  2: { x: 0,  y: 1 },  // down</span>
+<span class="c1">//  3: { x: -1, y: 0 }   // left</span>
+
+<span class="k">var</span> <span class="n">myMove</span> <span class="o">=</span> <span class="p">[</span><span class="sc">&#39;l&#39;</span><span class="p">,</span> <span class="sc">&#39;d&#39;</span><span class="p">,</span> <span class="sc">&#39;r&#39;</span><span class="p">,</span> <span class="sc">&#39;u&#39;</span><span class="p">];</span>
+</pre></div>
+
+
+<p>get the best move from the AI:</p>
+<div class="highlight"><pre><span class="n">var</span> <span class="n">nowMove</span> <span class="o">=</span> <span class="n">this</span><span class="p">.</span><span class="n">ai</span><span class="p">.</span><span class="n">getBest</span><span class="p">().</span><span class="n">move</span><span class="p">;</span>
+</pre></div>
+
+
+<p>send that move to the server:</p>
+<div class="highlight"><pre><span class="n">client</span><span class="p">.</span><span class="n">send</span><span class="p">(</span><span class="n">myMove</span><span class="p">[</span><span class="n">nowMove</span><span class="p">]</span> <span class="o">+</span> <span class="sc">&#39;\n&#39;</span><span class="p">);</span>
+</pre></div>
+
+
 <p>The whole dirty solution can be found here:
-<img alt="2048 automatic bash solver" src="data/2048/2048.node" /></p>
+<a href="data/2048/2048.node">2048 automatic bash solver</a></p>
             </div><!-- /.entry-content -->
 
 
@@ -161,9 +183,9 @@ because when we first got the script to do what we wanted we always got stuck af
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
 	    <li class="tag-4"><a href="./tag/2048.html">2048</a></li>
 	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
 	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
 </ul>
 
