@@ -295,7 +295,27 @@ http connection open an just pumped the result right back.&lt;/p&gt;
 
 &lt;h2&gt;Lessons learned&lt;/h2&gt;
 &lt;p&gt;Just use python in first place, shell is not the right tool to solve reverse engineering tasks. Also, get some more exercise with your tools of trade.&lt;/p&gt;
-&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry><entry><title>for1 USB Dump</title><link href="http://krebsco.de/for1-usb-dump.html" rel="alternate"></link><updated>2014-07-17T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-17:for1-usb-dump.html</id><summary type="html">&lt;ul&gt;
+&lt;p&gt;&lt;a href="data/crackme_fast/out"&gt;Link to the file retrieved from the server&lt;/a&gt;&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry><entry><title>Crack me</title><link href="http://krebsco.de/crack-me.html" rel="alternate"></link><updated>2014-07-17T00:00:00+02:00</updated><author><name>momorientes</name></author><id>tag:krebsco.de,2014-07-17:crack-me.html</id><summary type="html">&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: exco, ttb, makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Author&lt;/strong&gt;: momorientes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA=&lt;/code&gt; was the only information avaliable.&lt;br /&gt;
+The trailing &lt;code&gt;=&lt;/code&gt; is always a good hint for base64, so we'll try that:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; -n QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA&lt;span class="o"&gt;=&lt;/span&gt; | base64 -d                                
+BZh91AY&amp;amp;SY&amp;lt;Rà
+                _à; 0Ôô%²³&lt;span class="nv"&gt;$É&lt;/span&gt;
+                            @Ú&lt;span class="o"&gt;[&lt;/span&gt;½x¿rE8P&amp;lt;R
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;While this might look like complete crap the &lt;code&gt;BZ&lt;/code&gt; in the header is the magic number of bzip. The &lt;code&gt;h&lt;/code&gt; tells us that is Huffman coding we're dealing with and therefore &lt;code&gt;bzip2&lt;/code&gt;. The &lt;code&gt;9&lt;/code&gt; shows us the uncompressed block-size in 100kB (here:900kB).&lt;/p&gt;
+&lt;p&gt;Easy enough all we have to do is pipe our base64 decoded string into bunzip2:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nb"&gt;echo &lt;/span&gt;QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA&lt;span class="o"&gt;=&lt;/span&gt; | base64 -d | bunzip2 -d
+9afa828748387b6ac0a393c00e542079
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;That's it, no Pwnium{} flag format needed (that did cost us quite some time)!&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category></entry><entry><title>for1 USB Dump</title><link href="http://krebsco.de/for1-usb-dump.html" rel="alternate"></link><updated>2014-07-17T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-17:for1-usb-dump.html</id><summary type="html">&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes, makefu&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Author&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;

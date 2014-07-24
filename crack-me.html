@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-        <title>for1 USB Dump</title>
+        <title>Crack me</title>
         <meta charset="utf-8" />
         <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
 
@@ -54,8 +54,8 @@
 
             <header>
               <h2 class="entry-title">
-                <a href="./for1-usb-dump.html" rel="bookmark"
-                   title="Permalink to for1 USB Dump">for1 USB Dump</a></h2>
+                <a href="./crack-me.html" rel="bookmark"
+                   title="Permalink to Crack me">Crack me</a></h2>
            
             </header>
             <footer class="post-info">
@@ -63,32 +63,31 @@
                 Thu 17 July 2014
               </abbr>
               <address class="vcard author">By 
-                <a class="url fn" href="./author/makefu.html"> makefu</a>
+                <a class="url fn" href="./author/momorientes.html"> momorientes</a>
               </address>
             </footer><!-- /.post-info -->
             <div class="entry-content">
               <ul>
-<li><strong>Solved by</strong>: momorientes, makefu</li>
-<li><strong>Author</strong>: makefu</li>
+<li><strong>Solved by</strong>: exco, ttb, makefu</li>
+<li><strong>Author</strong>: momorientes</li>
 </ul>
-<h2>Finding the needle in the haystack</h2>
-<p>We received an dump file which was loadable via wireshark. The dump looks like
-some usb-traffic between a computer and a USB-SATA Hard Disk.</p>
-<p>Normally it is a good idea to sort traces by size as bigger packets normally
-contain <em>interesing</em> data. URB_BULK packages contain actual transfer data from
-the disk.
-After looking around we remembered that at the beginning of the ctf (the website was still offline) we got told that the flag format is Pwnium{md5}.</p>
-<p>A quick <code>-&gt; ctrl-f -&gt; string -&gt; pwnium -&gt; Packet bytes -&gt; Pwnium</code> revealed
-what we were looking for. 
-That was easy!</p>
-<h2>Remarks</h2>
-<p>Besides that, there were quite a lot of nice finds in the dump:</p>
-<ul>
-<li><em>Packet 860</em>: Mac OS X - This resource fork intentionally blank left</li>
-<li><em>Packet 854</em>: Riot Games</li>
-<li><em>Packet 116</em>: EPORT~1PDF</li>
-</ul>
-<p><a href="data/usb_dump/for1.pcapng">The original Dump File</a></p>
+<p><code>QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA=</code> was the only information avaliable.<br />
+The trailing <code>=</code> is always a good hint for base64, so we'll try that:</p>
+<div class="highlight"><pre><span class="nb">echo</span> -n QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA<span class="o">=</span> | base64 -d                                
+BZh91AY&amp;SY&lt;Rà
+                _à; 0Ôô%²³<span class="nv">$É</span>
+                            @Ú<span class="o">[</span>½x¿rE8P&lt;R
+</pre></div>
+
+
+<p>While this might look like complete crap the <code>BZ</code> in the header is the magic number of bzip. The <code>h</code> tells us that is Huffman coding we're dealing with and therefore <code>bzip2</code>. The <code>9</code> shows us the uncompressed block-size in 100kB (here:900kB).</p>
+<p>Easy enough all we have to do is pipe our base64 decoded string into bunzip2:</p>
+<div class="highlight"><pre><span class="nb">echo </span>QlpoOTFBWSZTWTxSmOAAAAsJAF/gOwAgADEAAAiZMNT0JbKzhCQcyQtA2gNbvXgSvxdyRThQkDxSmOA<span class="o">=</span> | base64 -d | bunzip2 -d
+9afa828748387b6ac0a393c00e542079
+</pre></div>
+
+
+<p>That's it, no Pwnium{} flag format needed (that did cost us quite some time)!</p>
             </div><!-- /.entry-content -->
 
 
