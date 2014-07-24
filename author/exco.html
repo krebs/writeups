@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-        <title>Krebs CTF Writeups - captcha</title>
+        <title>Krebs CTF Writeups - Articles by exco</title>
         <meta charset="utf-8" />
         <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
 
@@ -47,7 +47,7 @@
             </div>
 
 <section id="content">
-
+<h2>Articles by exco</h2>
 
 
    <div class="row">
@@ -56,64 +56,34 @@
         <div class="eleven columns">
                  <ol id="post-list">
                         <li><article class="hentry">
-                                <header> <h2 class="entry-title"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">ROT</a></h2> </header>
+                                <header> <h2 class="entry-title"><a href="../2048.html" rel="bookmark" title="Permalink to 2048">2048</a></h2> </header>
                                 <footer class="post-info">
-                                    <abbr class="published" title="2014-07-21T00:00:00"> Mon 21 July 2014 </abbr>
+                                    <abbr class="published" title="2014-07-18T00:00:00"> Fri 18 July 2014 </abbr>
                                     <address class="vcard author">By 
-                                    <a class="url fn" href="../author/makefu.html"> makefu</a>
-                                    <a class="url fn" href="../author/momorientes.html"> momorientes</a>
+                                    <a class="url fn" href="../author/exco.html"> exco</a>
                                     </address>
                                 </footer><!-- /.post-info -->
                                 <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: momorientes, exco, ttb, makefu</li>
-<li><strong>Author First Part</strong>: momorientes</li>
-<li><strong>Author Second Part</strong>: makefu</li>
+<li><strong>Solved by</strong>: exco, ttb</li>
+<li><strong>Writeup Author</strong>: exco</li>
 </ul>
 <h2>Introduction</h2>
-<p>We got a raw-socket ip and port and when connecting to it we received an ASCII
-clob. After cracking the code you have to send the passcode back within 2 seconds.</p>
-<p>The == at the end ...</p> </div><!-- /.entry-content -->
+<p>The task was to connect to some ip port 2048 with nc
+ $ nc <ip> 2048
+and solve 2048, the game in less than 6 minutes.
+The time was later reduced to 3.5 minutes.</p>
+<p>2048 on that server looked roughly like this:
+<img alt="2048 bash example" src="data/2048/2048_example.jpeg" /></p>
+<p>u ...</p> </div><!-- /.entry-content -->
 
-                                <div class="medium primary btn"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">Read more <i class="icon-arrow-right"></i></a></div>
-
-
-
-                                <div class="row tag-row">
-                                        <span>Tagged as : </span>
-                                            <a class="danger label" href="../tag/crackme.html">crackme</a>
-                                            <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-                                            <a class="danger label" href="../tag/captcha.html">captcha</a>
-                                </div>
-
-
-
-                        </article></li>
-                        <li><article class="hentry">
-                                <header> <h2 class="entry-title"><a href="../for1-usb-dump.html" rel="bookmark" title="Permalink to for1 USB Dump">for1 USB Dump</a></h2> </header>
-                                <footer class="post-info">
-                                    <abbr class="published" title="2014-07-17T00:00:00"> Thu 17 July 2014 </abbr>
-                                    <address class="vcard author">By 
-                                    <a class="url fn" href="../author/makefu.html"> makefu</a>
-                                    </address>
-                                </footer><!-- /.post-info -->
-                                <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: momorientes, makefu</li>
-<li><strong>Author</strong>: makefu</li>
-</ul>
-<h2>Finding the needle in the haystack</h2>
-<p>We received an dump file which was loadable via wireshark. The dump looks like
-some usb-traffic between a computer and a USB-SATA Hard Disk.</p>
-<p>Normally it is a good idea to sort traces by size as bigger packets ...</p> </div><!-- /.entry-content -->
-
-                                <div class="medium primary btn"><a href="../for1-usb-dump.html" rel="bookmark" title="Permalink to for1 USB Dump">Read more <i class="icon-arrow-right"></i></a></div>
+                                <div class="medium primary btn"><a href="../2048.html" rel="bookmark" title="Permalink to 2048">Read more <i class="icon-arrow-right"></i></a></div>
 
 
 
                                 <div class="row tag-row">
                                         <span>Tagged as : </span>
-                                            <a class="danger label" href="../tag/crackme.html">crackme</a>
+                                            <a class="danger label" href="../tag/2048.html">2048</a>
                                             <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-                                            <a class="danger label" href="../tag/captcha.html">captcha</a>
                                 </div>
 
 

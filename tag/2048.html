@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-        <title>Krebs CTF Writeups - Articles by Krebsminister</title>
+        <title>Krebs CTF Writeups - 2048</title>
         <meta charset="utf-8" />
         <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
 
@@ -47,66 +47,49 @@
             </div>
 
 <section id="content">
-<h2>Articles by Krebsminister</h2>
+
 
 
    <div class="row">
 
 
         <div class="eleven columns">
-		         <ol id="post-list">
-				        <li><article class="hentry">
-				                <header> <h2 class="entry-title"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">ROT</a></h2> </header>
-				                <footer class="post-info">
-				                    <abbr class="published" title="2014-07-21T00:00:00"> Mon 21 July 2014 </abbr>
-
-              <address class="vcard author">By 
-                <a class="url fn" href="../">  </a>
-                <a class="url fn" href="../"> ,</a>
-                <a class="url fn" href="../"> a</a>
-                <a class="url fn" href="../"> e</a>
-                <a class="url fn" href="../"> e</a>
-                <a class="url fn" href="../"> e</a>
-                <a class="url fn" href="../"> f</a>
-                <a class="url fn" href="../"> i</a>
-                <a class="url fn" href="../"> k</a>
-                <a class="url fn" href="../"> m</a>
-                <a class="url fn" href="../"> m</a>
-                <a class="url fn" href="../"> m</a>
-                <a class="url fn" href="../"> n</a>
-                <a class="url fn" href="../"> o</a>
-                <a class="url fn" href="../"> o</a>
-                <a class="url fn" href="../"> r</a>
-                <a class="url fn" href="../"> s</a>
-                <a class="url fn" href="../"> t</a>
-                <a class="url fn" href="../"> u</a>
-              </address>
-				                </footer><!-- /.post-info -->
-				                <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: momorientes,exco,ttb,makefu</li>
-<li><strong>Author First Part</strong>: momorientes</li>
-<li><strong>Author Second Part</strong>: makefu</li>
+                 <ol id="post-list">
+                        <li><article class="hentry">
+                                <header> <h2 class="entry-title"><a href="../2048.html" rel="bookmark" title="Permalink to 2048">2048</a></h2> </header>
+                                <footer class="post-info">
+                                    <abbr class="published" title="2014-07-18T00:00:00"> Fri 18 July 2014 </abbr>
+                                    <address class="vcard author">By 
+                                    <a class="url fn" href="../author/exco.html"> exco</a>
+                                    </address>
+                                </footer><!-- /.post-info -->
+                                <div class="entry-content"> <ul>
+<li><strong>Solved by</strong>: exco, ttb</li>
+<li><strong>Writeup Author</strong>: exco</li>
 </ul>
 <h2>Introduction</h2>
-<p>We got a raw-socket ip and port and when connecting to it we got a big ASCII
-blob. After cracking the code you have to send it back within 5 seconds.</p>
-<p>The == at the end ...</p> </div><!-- /.entry-content -->
+<p>The task was to connect to some ip port 2048 with nc
+ $ nc <ip> 2048
+and solve 2048, the game in less than 6 minutes.
+The time was later reduced to 3.5 minutes.</p>
+<p>2048 on that server looked roughly like this:
+<img alt="2048 bash example" src="data/2048/2048_example.jpeg" /></p>
+<p>u ...</p> </div><!-- /.entry-content -->
 
-								<div class="medium primary btn"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">Read more <i class="icon-arrow-right"></i></a></div>
-
-
-
-								<div class="row tag-row">
-										<span>Tagged as : </span>
-											<a class="danger label" href="../tag/crackme.html">crackme</a>
-											<a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-											<a class="danger label" href="../tag/captcha.html">captcha</a>
-								</div>
+                                <div class="medium primary btn"><a href="../2048.html" rel="bookmark" title="Permalink to 2048">Read more <i class="icon-arrow-right"></i></a></div>
 
 
 
-				        </article></li>
-				</ol><!-- /#posts-list -->
+                                <div class="row tag-row">
+                                        <span>Tagged as : </span>
+                                            <a class="danger label" href="../tag/2048.html">2048</a>
+                                            <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
+                                </div>
+
+
+
+                        </article></li>
+                </ol><!-- /#posts-list -->
 
         </div><!-- /.eleven.columns -->
         
@@ -119,15 +102,16 @@ blob. After cracking the code you have to send it back within 5 seconds.</p>
       <li><a href="../pages/contact.html">Contact</a></li>
   </ul>
 
-<h4>Categories</h4>
+<!--<h4>Categories</h4>
 <ul>
 		<li><a href="../category/posts.html">posts</a></li>
 </ul>
-
+-->
 
 <h4>Tags</h4>
 	<ul>
-	    <li class="tag-4"><a href="../tag/captcha.html">captcha</a></li>
+	    <li class="tag-2"><a href="../tag/captcha.html">captcha</a></li>
+	    <li class="tag-4"><a href="../tag/2048.html">2048</a></li>
 	    <li class="tag-1"><a href="../tag/crackme.html">crackme</a></li>
 	    <li class="tag-1"><a href="../tag/pwnium2014.html">pwnium2014</a></li>
 </ul>
