@@ -81,7 +81,8 @@ We cannot directly execute our name string as both ASLR and NX-Stack are enabled
     End of assembler dump.
 
 Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. 
-To be clear: we currently only control eip, not the whole stack. ROP to the rescue!
+
+To be clear: we currently only control `eip`, not the `esp`. ROP to the rescue!
 
 This is how our stack must look like for a successful exploit:
 
@@ -90,7 +91,8 @@ This is how our stack must look like for a successful exploit:
 | call system          | <- esp                      |
 | [command-string]     | <- esp + 4 (first argument) |
 
-The ROP gadget i used is a simple 'pop-ret' which can be found with for example [msfrop]( http://shell-storm.org/project/ROPgadget/ ) or [ROPgadget](http://shell-storm.org/project/ROPgadget/). POP-RET is at `0x080487a6`.
+We cannot call system directly because after the call as ebp+4 will be pointing to our provided jump address.
+The ROP gadget i used is a simple 'pop-ret' which can be found with for example [msfrop]( http://shell-storm.org/project/ROPgadget/ ) or [ROPgadget](http://shell-storm.org/project/ROPgadget/) in conjuction with a `system` call. POP-RET is at `0x080487a6`. 
 
 By that we can prepare our input as an argument for the system call. As we have no shell command yet we will used `0x80487f3` - 'echo pwned' for testing.
 
