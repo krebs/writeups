@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Krebs CTF Writeups</title><link>http://krebsco.de/</link><description></description><atom:link href="http://krebsco.de/feeds/makefu.rss.xml" rel="self"></atom:link><lastBuildDate>Wed, 30 Jul 2014 00:00:00 +0200</lastBuildDate><item><title>Be a Robot</title><link>http://krebsco.de/be-a-robot.html</link><description>&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Author&lt;/strong&gt;: makefu&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Intro&lt;/h2&gt;
 &lt;p&gt;First of all, this is a post-mortem solution for pwn200 as we failed to finish
