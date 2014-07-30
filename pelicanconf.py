@@ -17,7 +17,7 @@ CATEGORY_FEED_ATOM = None
 TRANSLATION_FEED_ATOM = None
 STATIC_PATHS = ['extra/robots.txt','data' ]
 EXTRA_PATH_METADATA = { 'extra/robots.txt': {'path': 'robots.txt'}, }
-
+DISPLAY_CATEGORIES_ON_MENU = None
 # Blogroll
 LINKS =  ( ( 'Hosts Files', 'http://krebsco.de/retiolum/hosts.tar.gz'),
 ( 'Supernodes File', 'http://euer.krebsco.de/retiolum/supernodes.tar.gz'),
@@ -36,4 +36,4 @@ DEFAULT_PAGINATION = 10
 
 # Uncomment following line if you want document-relative URLs when developing
 RELATIVE_URLS = True
-MENUITEMS = ( ( 'RSS', '/atom.xml',),)
+MENUITEMS = ( ( 'RSS', '/writeups/atom.xml',),)
