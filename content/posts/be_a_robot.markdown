@@ -3,7 +3,7 @@ date: 2014-07-30
 author: makefu
 tags: crackme, pwnium2014, post-mortem
 
- * **Author**: makefu
+ * **Solved by**: makefu
 
 ## Intro
 First of all, this is a post-mortem solution for pwn200 as we failed to finish
