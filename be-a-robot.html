@@ -139,8 +139,8 @@ and the pointer will stay uninitialized. </p>
 </pre></div>
 
 
-<p>Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. 
-To be clear: we currently only control eip, not the whole stack. ROP to the rescue!</p>
+<p>Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. </p>
+<p>To be clear: we currently only control <code>eip</code>, not the <code>esp</code>. ROP to the rescue!</p>
 <p>This is how our stack must look like for a successful exploit:</p>
 <table>
 <thead>
@@ -160,7 +160,8 @@ To be clear: we currently only control eip, not the whole stack. ROP to the resc
 </tr>
 </tbody>
 </table>
-<p>The ROP gadget i used is a simple 'pop-ret' which can be found with for example <a href="http://shell-storm.org/project/ROPgadget/">msfrop</a> or <a href="http://shell-storm.org/project/ROPgadget/">ROPgadget</a>. POP-RET is at <code>0x080487a6</code>.</p>
+<p>We cannot call system directly because after the call as ebp+4 will be pointing to our provided jump address.
+The ROP gadget i used is a simple 'pop-ret' which can be found with for example <a href="http://shell-storm.org/project/ROPgadget/">msfrop</a> or <a href="http://shell-storm.org/project/ROPgadget/">ROPgadget</a> in conjuction with a <code>system</code> call. POP-RET is at <code>0x080487a6</code>. </p>
 <p>By that we can prepare our input as an argument for the system call. As we have no shell command yet we will used <code>0x80487f3</code> - 'echo pwned' for testing.</p>
 <h3>Follow the Execution Flow</h3>
 <p>These tables show the stack after each ROP step.</p>
@@ -351,9 +352,9 @@ boot  etc  home   lib    mnt   proc  run  tmp
 <h4>Tags</h4>
 	<ul>
 	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
-	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
-	    <li class="tag-4"><a href="./tag/post-mortem.html">post-mortem</a></li>
 	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-4"><a href="./tag/post-mortem.html">post-mortem</a></li>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
 </ul>
 
 

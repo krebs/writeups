@@ -71,8 +71,8 @@ and the pointer will stay uninitialized. &lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. 
-To be clear: we currently only control eip, not the whole stack. ROP to the rescue!&lt;/p&gt;
+&lt;p&gt;Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. &lt;/p&gt;
+&lt;p&gt;To be clear: we currently only control &lt;code&gt;eip&lt;/code&gt;, not the &lt;code&gt;esp&lt;/code&gt;. ROP to the rescue!&lt;/p&gt;
 &lt;p&gt;This is how our stack must look like for a successful exploit:&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
@@ -92,7 +92,8 @@ To be clear: we currently only control eip, not the whole stack. ROP to the resc
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;The ROP gadget i used is a simple 'pop-ret' which can be found with for example &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;msfrop&lt;/a&gt; or &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;ROPgadget&lt;/a&gt;. POP-RET is at &lt;code&gt;0x080487a6&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;We cannot call system directly because after the call as ebp+4 will be pointing to our provided jump address.
+The ROP gadget i used is a simple 'pop-ret' which can be found with for example &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;msfrop&lt;/a&gt; or &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;ROPgadget&lt;/a&gt; in conjuction with a &lt;code&gt;system&lt;/code&gt; call. POP-RET is at &lt;code&gt;0x080487a6&lt;/code&gt;. &lt;/p&gt;
 &lt;p&gt;By that we can prepare our input as an argument for the system call. As we have no shell command yet we will used &lt;code&gt;0x80487f3&lt;/code&gt; - 'echo pwned' for testing.&lt;/p&gt;
 &lt;h3&gt;Follow the Execution Flow&lt;/h3&gt;
 &lt;p&gt;These tables show the stack after each ROP step.&lt;/p&gt;
