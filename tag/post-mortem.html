@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-        <title>Krebs CTF Writeups - captcha</title>
+        <title>Krebs CTF Writeups - post-mortem</title>
         <meta charset="utf-8" />
         <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
 
@@ -56,56 +56,23 @@
         <div class="eleven columns">
                  <ol id="post-list">
                         <li><article class="hentry">
-                                <header> <h2 class="entry-title"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">ROT</a></h2> </header>
+                                <header> <h2 class="entry-title"><a href="../be-a-robot.html" rel="bookmark" title="Permalink to Be a Robot">Be a Robot</a></h2> </header>
                                 <footer class="post-info">
-                                    <abbr class="published" title="2014-07-21T00:00:00"> Mon 21 July 2014 </abbr>
-                                    <address class="vcard author">By 
-                                    <a class="url fn" href="../author/makefu.html"> makefu</a>
-                                    <a class="url fn" href="../author/momorientes.html"> momorientes</a>
-                                    </address>
-                                </footer><!-- /.post-info -->
-                                <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: momorientes, exco, ttb, makefu</li>
-<li><strong>Author First Part</strong>: momorientes</li>
-<li><strong>Author Second Part</strong>: makefu</li>
-</ul>
-<h2>Introduction</h2>
-<p>We got a raw-socket ip and port and when connecting to it we received an ASCII
-clob. After cracking the code you have to send the passcode back within 2 seconds.</p>
-<p>The == at the end ...</p> </div><!-- /.entry-content -->
-
-                                <div class="medium primary btn"><a href="../rot.html" rel="bookmark" title="Permalink to ROT">Read more <i class="icon-arrow-right"></i></a></div>
-
-
-
-                                <div class="row tag-row">
-                                        <span>Tagged as : </span>
-                                            <a class="danger label" href="../tag/crackme.html">crackme</a>
-                                            <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-                                            <a class="danger label" href="../tag/captcha.html">captcha</a>
-                                </div>
-
-
-
-                        </article></li>
-                        <li><article class="hentry">
-                                <header> <h2 class="entry-title"><a href="../for1-usb-dump.html" rel="bookmark" title="Permalink to for1 USB Dump">for1 USB Dump</a></h2> </header>
-                                <footer class="post-info">
-                                    <abbr class="published" title="2014-07-17T00:00:00"> Thu 17 July 2014 </abbr>
+                                    <abbr class="published" title="2014-07-30T00:00:00"> Wed 30 July 2014 </abbr>
                                     <address class="vcard author">By 
                                     <a class="url fn" href="../author/makefu.html"> makefu</a>
                                     </address>
                                 </footer><!-- /.post-info -->
                                 <div class="entry-content"> <ul>
-<li><strong>Solved by</strong>: momorientes, makefu</li>
 <li><strong>Author</strong>: makefu</li>
 </ul>
-<h2>Finding the needle in the haystack</h2>
-<p>We received an dump file which was loadable via wireshark. The dump looks like
-some usb-traffic between a computer and a USB-SATA Hard Disk.</p>
-<p>Normally it is a good idea to sort traces by size as bigger packets ...</p> </div><!-- /.entry-content -->
+<h2>Intro</h2>
+<p>First of all, this is a post-mortem solution for pwn200 as we failed to finish
+it within ctf time both because the challenge was offline alot of the time and
+that we were not experienced enough to find a solution.</p>
+<p>The challenge was to elevate privileges on ...</p> </div><!-- /.entry-content -->
 
-                                <div class="medium primary btn"><a href="../for1-usb-dump.html" rel="bookmark" title="Permalink to for1 USB Dump">Read more <i class="icon-arrow-right"></i></a></div>
+                                <div class="medium primary btn"><a href="../be-a-robot.html" rel="bookmark" title="Permalink to Be a Robot">Read more <i class="icon-arrow-right"></i></a></div>
 
 
 
@@ -113,7 +80,7 @@ some usb-traffic between a computer and a USB-SATA Hard Disk.</p>
                                         <span>Tagged as : </span>
                                             <a class="danger label" href="../tag/crackme.html">crackme</a>
                                             <a class="danger label" href="../tag/pwnium2014.html">pwnium2014</a>
-                                            <a class="danger label" href="../tag/captcha.html">captcha</a>
+                                            <a class="danger label" href="../tag/post-mortem.html">post-mortem</a>
                                 </div>
 
 
